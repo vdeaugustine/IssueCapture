@@ -1,0 +1,26 @@
+name: Bug report
+description: Report a reproducible IssueCapture problem
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Include the smallest reproduction you can share. Do not include user data, credentials, or sensitive screenshots.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: IssueCapture version
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: iOS 17.x, Xcode 16.x, device or simulator
+    validations:
+      required: true

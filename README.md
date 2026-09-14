@@ -14,7 +14,15 @@ Copy this prompt:
 
 ## Install
 
-In Xcode, choose **File → Add Package Dependencies → Add Local**, select this directory, and add the `IssueCapture` product to your app target. For distribution, put this directory in a Git repository and add its URL instead.
+In Xcode, choose **File → Add Package Dependencies → Add Local**, select this directory, and add the `IssueCapture` product to your app target. For distribution, add the GitHub repository with a tagged version requirement:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/vdeaugustine/IssueCapture.git", from: "1.0.0")
+]
+```
+
+Then link the `IssueCapture` product to the app target. Releases use semantic-version Git tags (`1.0.0`, `1.0.1`, etc.). Swift Package Manager resolves and records the selected tag and commit in the consuming app's `Package.resolved`. See [release and update policy](Documentation/Releasing.md).
 
 ```swift
 import IssueCapture
