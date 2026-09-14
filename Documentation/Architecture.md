@@ -8,6 +8,22 @@
 - **Export**: Markdown/JSON generation, annotated derivatives, image cards and streaming stored ZIP32 writer.
 - **UI**: description editor, markup canvas, inbox, diagnostics and system share sheet.
 
+`Core` model types, `Recording` event types and the export schema live in the
+separate Foundation-only `IssueCaptureSchema` target so non-UIKit readers can
+decode exports. `IssueCapture` re-exports it, leaving `import IssueCapture`
+unchanged for consumers.
+
+## Mac companion
+
+`MacCompanion/` is a separate Swift package holding the macOS companion app. It
+depends on this package by path and links only the `IssueCaptureSchema` product,
+never the UIKit `IssueCapture` target. Its `CompanionCore` library is split into
+Import (archive and folder ingestion, manifest validation, staged commits, folder
+watch), Evidence (versioned storage and import provenance), Batching (pure rule
+engine with explanations and persistent manual overrides) and Requests (lossless
+assembly, attachment policy, snapshot manifests). See
+[MacCompanion.md](MacCompanion.md).
+
 ## Ownership
 
 An enabled scene root owns CaptureSession. The session owns its recorder and overlay controller. The overlay uses weak references back to the session and host window. SwiftUI dismantling detaches the overlay. Each recorder receives its owning scene ID; no global current-screen variable exists.

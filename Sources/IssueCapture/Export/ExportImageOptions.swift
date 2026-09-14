@@ -1,27 +1,9 @@
 import UIKit
 
 /// Image representations available in an issue export.
-enum ExportImageKind: String, CaseIterable, Codable, Sendable {
-    case screenshot, attachment, annotation, card
-
-    var title: String {
-        switch self {
-        case .screenshot: return "Screenshot"
-        case .attachment: return "Attached image"
-        case .annotation: return "Annotated image"
-        case .card: return "Issue card"
-        }
-    }
-
-    var basename: String {
-        switch self {
-        case .screenshot: return "screenshot-original"
-        case .attachment: return "attachment"
-        case .annotation: return "screenshot-annotated"
-        case .card: return "issue-card"
-        }
-    }
-}
+///
+/// Defined in `IssueCaptureSchema` so companion readers share the exact keys.
+typealias ExportImageKind = IssueExportImageKind
 
 /// Compression changes export copies only; original evidence remains in storage.
 enum ExportImageQuality: String, CaseIterable, Codable, Sendable {

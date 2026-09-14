@@ -16,6 +16,19 @@ public struct IssueScreenContext: Codable, Identifiable, Sendable, Equatable {
     public let line: UInt
     /// Enclosing registered screen, if available.
     public let parentID: UUID?
+
+    /// Creates a screen context. Callers supply identity explicitly; it is
+    /// never inferred from UIKit internals.
+    public init(id: UUID, stableID: String?, name: String, typeName: String,
+                file: String, line: UInt, parentID: UUID?) {
+        self.id = id
+        self.stableID = stableID
+        self.name = name
+        self.typeName = typeName
+        self.file = file
+        self.line = line
+        self.parentID = parentID
+    }
 }
 
 /// A point expressed in screenshot-relative coordinates.
@@ -24,6 +37,12 @@ public struct IssuePoint: Codable, Sendable {
     public var x: Double
     /// Vertical fraction in 0...1.
     public var y: Double
+
+    /// Creates a normalized point.
+    public init(x: Double, y: Double) {
+        self.x = x
+        self.y = y
+    }
 }
 
 /// Editable drawing saved independently of original evidence.
@@ -36,6 +55,13 @@ public struct IssueAnnotation: Codable, Identifiable, Sendable {
     public var kind: Kind
     /// Normalized path coordinates.
     public var points: [IssuePoint]
+
+    /// Creates an annotation path.
+    public init(id: UUID = UUID(), kind: Kind, points: [IssuePoint]) {
+        self.id = id
+        self.kind = kind
+        self.points = points
+    }
 }
 
 /// Durable issue record. Image bytes live alongside this metadata.
@@ -78,4 +104,32 @@ public struct IssueReport: Codable, Identifiable, Sendable {
     public var tags: [String]? = nil
     /// Short label for human-readable lists; UUID remains authoritative.
     public var displayID: String { "ISSUE-" + id.uuidString.prefix(8) }
+
+    /// Creates a report. Parameter order matches the stored field order.
+    public init(schemaVersion: Int = 1, id: UUID = UUID(), projectID: String,
+                capturedAt: Date = Date(), updatedAt: Date = Date(), description: String = "",
+                expectedBehavior: String = "", reproductionNotes: String = "",
+                screens: [IssueScreenContext], contextStatus: String,
+                environment: [String: String], events: [IssueEvent], captureStatus: String,
+                annotations: [IssueAnnotation] = [], exportPreparedAt: [Date] = [],
+                hasScreenshot: Bool, hasAttachment: Bool = false, tags: [String]? = nil) {
+        self.schemaVersion = schemaVersion
+        self.id = id
+        self.projectID = projectID
+        self.capturedAt = capturedAt
+        self.updatedAt = updatedAt
+        self.description = description
+        self.expectedBehavior = expectedBehavior
+        self.reproductionNotes = reproductionNotes
+        self.screens = screens
+        self.contextStatus = contextStatus
+        self.environment = environment
+        self.events = events
+        self.captureStatus = captureStatus
+        self.annotations = annotations
+        self.exportPreparedAt = exportPreparedAt
+        self.hasScreenshot = hasScreenshot
+        self.hasAttachment = hasAttachment
+        self.tags = tags
+    }
 }

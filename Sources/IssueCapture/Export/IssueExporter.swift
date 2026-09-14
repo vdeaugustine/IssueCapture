@@ -12,7 +12,7 @@ actor IssueExporter {
         do {
             for report in reports { try await write(report, root: root, options: options) }
             let date = Date()
-            let manifest = Manifest(schemaVersion: 1, exportedAt: date,
+            let manifest = IssueExportManifest(schemaVersion: IssueExportSchema.manifestVersion, exportedAt: date,
                 issues: reports.map { .init(id: $0.id, report: "issues/\($0.id.uuidString)/issue.json") })
             try ReportStore.encoder().encode(manifest).write(to: root.appendingPathComponent("manifest.json"))
             let links = reports.map { "- [\($0.displayID)](issues/\($0.id.uuidString)/issue.md)" }.joined(separator: "\n")
@@ -65,12 +65,5 @@ actor IssueExporter {
             }.joined(separator: "\n")
             return "## Tag: \(tag)\n\n\(links)"
         }.joined(separator: "\n\n")
-    }
-
-    private struct Manifest: Codable {
-        let schemaVersion: Int
-        let exportedAt: Date
-        let issues: [Item]
-        struct Item: Codable { let id: UUID; let report: String }
     }
 }

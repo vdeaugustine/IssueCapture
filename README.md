@@ -12,6 +12,14 @@ Copy this prompt:
 
 > We imported IssueCapture. Read its Documentation/AgentHandoff.md and complete the integration in this app. Follow the linked contracts, register screens and meaningful actions, update our agent instructions and coverage document, and report verification and remaining gaps.
 
+## Mac companion
+
+[MacCompanion/](MacCompanion) is a native macOS app that imports an export ZIP or
+folder, groups issues into explainable candidate requests, and prepares versioned
+request folders you can copy or drag into a coding tool. It works offline and
+needs no API key. See [MacCompanion/README.md](MacCompanion/README.md) for how to
+build, run and verify it, and for what it deliberately does not claim.
+
 ## Install
 
 In Xcode, choose **File → Add Package Dependencies → Add Local**, select this directory, and add the `IssueCapture` product to your app target. For distribution, add the GitHub repository with a tagged version requirement:

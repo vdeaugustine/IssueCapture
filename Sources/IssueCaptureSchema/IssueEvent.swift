@@ -49,4 +49,21 @@ public struct IssueEvent: Codable, Identifiable, Sendable {
     public let file: String
     /// Recording source line.
     public let line: UInt
+
+    /// Creates an event. Parameter order matches the stored field order.
+    public init(id: UUID, sessionID: UUID, sceneID: String, timestamp: Date, sequence: UInt64,
+                category: String, name: String, metadata: [String: String],
+                screen: IssueScreenContext?, file: String, line: UInt) {
+        self.id = id
+        self.sessionID = sessionID
+        self.sceneID = sceneID
+        self.timestamp = timestamp
+        self.sequence = sequence
+        self.category = category
+        self.name = name
+        self.metadata = metadata
+        self.screen = screen
+        self.file = file
+        self.line = line
+    }
 }

@@ -40,8 +40,8 @@ final class CaptureSession {
         guard !isPresenting, !isBusy else { return }
         let events = recorder.snapshot()
         let candidates = screens.filter { screen in !screens.contains { $0.parentID == screen.id } }
-        let contextStatus = candidates.count == 1 ? "registered candidate; lifecycle visibility unverified"
-            : candidates.isEmpty ? "missing screen registration" : "ambiguous: multiple active candidates"
+        let contextStatus = candidates.count == 1 ? IssueContextStatus.accepted
+            : candidates.isEmpty ? IssueContextStatus.missing : IssueContextStatus.ambiguous
         let capturedAt = Date()
         recorder.setSuspended(true)
         let snapshot = ScreenshotService.capture(window: hostWindow)
