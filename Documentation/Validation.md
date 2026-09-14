@@ -30,3 +30,12 @@ No XCTest or other test suite was run. Simulator walkthrough and archive inspect
 - Actual AirDrop/Files handoff between a physical phone and Mac.
 
 These unverified cases are not claimed as passed. Capture status explicitly describes rendering fidelity as unverified; manual image attachment is available when the app-window snapshot is incomplete.
+
+## Reporting and export polish — 2026-09-14
+
+- iOS Simulator package build passed using `xcodebuild -scheme IssueCapture
+  -destination 'generic/platform=iOS Simulator' build CODE_SIGNING_ALLOWED=NO`.
+- Added optional tag decoding for older records; export links use the filenames
+  produced by per-image encoding, including PNG fallback when JPEG is larger.
+- Tests were not run, per repository instructions. Interactive device validation
+  remains pending for annotation gestures, Photos selection, VoiceOver, and sharing.

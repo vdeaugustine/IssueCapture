@@ -74,6 +74,8 @@ public struct IssueReport: Codable, Identifiable, Sendable {
     public var hasScreenshot: Bool
     /// Whether a separately attached image exists.
     public var hasAttachment = false
+    /// Optional storage supports reports created before tags were introduced.
+    public var tags: [String]? = nil
     /// Short label for human-readable lists; UUID remains authoritative.
     public var displayID: String { "ISSUE-" + id.uuidString.prefix(8) }
 }

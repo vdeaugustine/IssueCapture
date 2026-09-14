@@ -1,0 +1,62 @@
+import SwiftUI
+
+struct IssueExportSheet: View {
+    let reports: [IssueReport]
+    let onExport: (ExportImageOptions) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var options = ExportImageOptions()
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Label("\(reports.count) issues ready to export", systemImage: "archivebox")
+                        .font(.headline)
+                    Text("Includes complete descriptions, tags, screen context, and event history.")
+                        .font(.subheadline).foregroundStyle(.secondary)
+                    Toggle("Include issue cards", isOn: $options.includeCards)
+                } footer: {
+                    Text("Cards combine each issue with its image. Text also stays available in full in Markdown and JSON.")
+                }
+                Section {
+                    ForEach(ExportImageQuality.allCases, id: \.self) { quality in
+                        Button("Set all images: \(quality.title)") {
+                            for report in reports {
+                                for kind in ExportImageKind.allCases {
+                                    options.qualities[ExportImageKey(reportID: report.id, kind: kind)] = quality
+                                }
+                            }
+                        }
+                    }
+                } header: { Text("Quick settings") } footer: {
+                    Text("Full detail is the default. JPEG compression reduces fine detail; keep text and subtle rendering bugs at full detail. Pixel dimensions stay unchanged. Smaller PNGs are kept when JPEG would be larger. Originals on this device stay untouched.")
+                }
+                ForEach(reports) { report in
+                    Section {
+                        Text(report.description).font(.subheadline).lineLimit(3)
+                        ForEach(options.kinds(for: report), id: \.self) { kind in
+                            Picker(kind.title, selection: qualityBinding(report, kind: kind)) {
+                                ForEach(ExportImageQuality.allCases, id: \.self) { quality in
+                                    Text(quality.title).tag(quality)
+                                }
+                            }
+                        }
+                    } header: { Text(report.displayID) }
+                }
+            }
+            .navigationTitle("Export options")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Prepare ZIP") { onExport(options) }
+                }
+            }
+        }
+    }
+
+    private func qualityBinding(_ report: IssueReport, kind: ExportImageKind) -> Binding<ExportImageQuality> {
+        Binding(get: { options.quality(for: report, kind: kind) },
+                set: { options.qualities[ExportImageKey(reportID: report.id, kind: kind)] = $0 })
+    }
+}

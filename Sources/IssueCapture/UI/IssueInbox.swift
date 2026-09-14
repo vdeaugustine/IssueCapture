@@ -7,7 +7,9 @@ struct IssueInbox: View {
     @State private var search = ""
     @State private var todayOnly = false
     @State private var newOnly = false
-    @State private var includeCards = true
+    @State private var tagFilter = ""
+    @State private var exportOptions: ExportRoute?
+    @State private var pendingExport: (reports: [IssueReport], options: ExportImageOptions)?
     @State private var confirmDelete = false
     @State private var editor: EditorRoute?
     @State private var share: ShareRoute?
@@ -18,8 +20,10 @@ struct IssueInbox: View {
         session.reports.filter {
             (!todayOnly || Calendar.current.isDateInToday($0.capturedAt)) &&
             (!newOnly || $0.exportPreparedAt.isEmpty) &&
+            (tagFilter.isEmpty || ($0.tags ?? []).contains(tagFilter)) &&
             (search.isEmpty || $0.description.localizedCaseInsensitiveContains(search) ||
-                $0.displayID.localizedCaseInsensitiveContains(search))
+                $0.displayID.localizedCaseInsensitiveContains(search) ||
+                ($0.tags ?? []).contains { $0.localizedCaseInsensitiveContains(search) })
         }
     }
 
@@ -28,11 +32,17 @@ struct IssueInbox: View {
             Section {
                 Toggle("Today only", isOn: $todayOnly)
                 Toggle("Not previously exported", isOn: $newOnly)
-                Toggle("Include image cards", isOn: $includeCards)
-                Button("Select visible (\(filtered.count))") { selected = Set(filtered.map(\.id)) }
+                Picker("Tag", selection: $tagFilter) {
+                    Text("All tags").tag("")
+                    ForEach(Array(Set(session.reports.flatMap { $0.tags ?? [] })).sorted(), id: \.self) { tag in
+                        Text(tag).tag(tag)
+                    }
+                }
+                Button("Select visible (\(filtered.count))") { selected.formUnion(filtered.map(\.id)) }
             }
-            Section("\(selected.count) selected") {
+            Section("\(selected.count) selected · \(filtered.count) visible") {
                 if filtered.isEmpty { ContentUnavailableView("No issues", systemImage: "tray", description: Text("Capture an issue using the floating tab.")) }
+                if !selected.isEmpty { Button("Clear selection") { selected = [] } }
                 ForEach(filtered) { report in
                     HStack(alignment: .top, spacing: 12) {
                         Button { toggle(report.id) } label: {
@@ -43,6 +53,9 @@ struct IssueInbox: View {
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(report.displayID).font(.caption.monospaced()).foregroundStyle(.secondary)
                                 Text(report.description).lineLimit(3).foregroundStyle(.primary)
+                                if let tags = report.tags, !tags.isEmpty {
+                                    Text(tags.joined(separator: " · ")).font(.caption).foregroundStyle(.tint)
+                                }
                                 Text(report.capturedAt, style: .date).font(.caption).foregroundStyle(.secondary)
                             }.frame(maxWidth: .infinity, alignment: .leading)
                         }.buttonStyle(.plain).disabled(loadingEditor)
@@ -50,7 +63,9 @@ struct IssueInbox: View {
                 }
             }
             Section {
-                Button(exporting ? "Preparing export…" : "Export selected", systemImage: "square.and.arrow.up", action: export)
+                Button(exporting ? "Preparing export…" : "Export selected (\(selected.count))…", systemImage: "square.and.arrow.up") {
+                    exportOptions = ExportRoute(reports: session.reports.filter { selected.contains($0.id) })
+                }
                     .disabled(selected.isEmpty || exporting)
                 Button("Copy agent prompt", systemImage: "doc.on.doc") { UIPasteboard.general.string = IssueMarkdown.agentPrompt }
                 Button("Delete selected", role: .destructive) { confirmDelete = true }
@@ -60,7 +75,10 @@ struct IssueInbox: View {
             }
         }
         .navigationTitle("Issue inbox")
-        .searchable(text: $search, prompt: "Description or issue ID")
+        .searchable(text: $search, prompt: "Description, issue ID, or tag")
+        .interactiveDismissDisabled(exporting)
+        .disabled(exporting)
+        .overlay { if exporting { ProgressView("Preparing export…").padding().background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16)) } }
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done", action: onClose).disabled(exporting) } }
         .task { await session.refresh() }
         .sheet(item: $editor) { route in
@@ -71,6 +89,17 @@ struct IssueInbox: View {
                                                           set: { if !$0 { session.errorMessage = nil } })) {
                 Button("OK") { session.errorMessage = nil }
             } message: { Text(session.errorMessage ?? "") }
+        }
+        .sheet(item: $exportOptions, onDismiss: {
+            if let pendingExport {
+                self.pendingExport = nil
+                export(pendingExport.reports, options: pendingExport.options)
+            }
+        }) { route in
+            IssueExportSheet(reports: route.reports) { options in
+                pendingExport = (route.reports, options)
+                exportOptions = nil
+            }
         }
         .sheet(item: $share) { route in ShareSheet(url: route.url) }
         .confirmationDialog("Permanently delete \(selected.count) reports?", isPresented: $confirmDelete, titleVisibility: .visible) {
@@ -91,12 +120,11 @@ struct IssueInbox: View {
         }
     }
 
-    private func export() {
+    private func export(_ reports: [IssueReport], options: ExportImageOptions) {
         exporting = true
-        let reports = session.reports.filter { selected.contains($0.id) }
         Task {
             do {
-                let url = try await IssueExporter.shared.export(reports, includeCards: includeCards)
+                let url = try await IssueExporter.shared.export(reports, options: options)
                 share = ShareRoute(url: url)
                 await session.refresh()
             } catch { session.errorMessage = error.localizedDescription }
@@ -125,3 +153,5 @@ private struct ShareSheet: UIViewControllerRepresentable {
     }
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
+
+private struct ExportRoute: Identifiable { let id = UUID(); let reports: [IssueReport] }
