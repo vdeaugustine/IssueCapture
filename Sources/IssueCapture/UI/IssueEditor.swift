@@ -129,6 +129,14 @@ struct IssueEditor: View {
                 .fontWeight(.semibold)
                 .disabled(!canSave)
         }
+        ToolbarItem(placement: .topBarLeading) {
+            NavigationLink {
+                IssueInbox(session: session, onClose: onFinish)
+            } label: {
+                Label("Issue box", systemImage: "tray.full")
+            }
+            .accessibilityHint("Opens saved issue reports")
+        }
         ToolbarItemGroup(placement: .keyboard) {
             Spacer()
             Button("Done") { focus = nil }
