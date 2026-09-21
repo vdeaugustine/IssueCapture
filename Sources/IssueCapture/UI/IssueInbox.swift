@@ -92,6 +92,11 @@ struct IssueInbox: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) { filterMenu }
         ToolbarItem(placement: .confirmationAction) { Button("Done", action: onClose).disabled(exporting) }
+        ToolbarItem(placement: .secondaryAction) {
+            Button("Capture IssueCapture screen", systemImage: "ladybug") {
+                session.captureReporter()
+            }
+        }
         ToolbarItemGroup(placement: .bottomBar) {
             Button(exporting ? "Preparing…" : "Export (\(selected.count))", systemImage: "square.and.arrow.up") {
                 exportOptions = ExportRoute(reports: session.reports.filter { selected.contains($0.id) })

@@ -12,6 +12,7 @@ Let a developer using an iPhone app capture an issue at the moment it occurs, in
 - Proposed minimum deployment target: iOS 17; confirm during implementation planning.
 - No account, backend, companion app, or network connection required for v1.
 - A movable edge tab opens the reporter over the app's active scene.
+- The reporter can explicitly self-capture its current screen for dogfooding and improvement reports.
 - Capture the app and freeze context before presenting the reporting interface.
 - Require only an issue description; support keyboard dictation through the standard text input system.
 - Register screens through a protocol and modifier; record actions explicitly through scoped reporting context.
@@ -48,7 +49,7 @@ Let a developer using an iPhone app capture an issue at the moment it occurs, in
 
 1. Developer taps the edge tab while the issue is visible.
 2. Recorder reserves an issue UUID and freezes timestamp, active screen stack, metadata, and recent events.
-3. Capture service excludes its own UI and snapshots the relevant app scene before opening the editor or changing keyboard focus.
+3. For a host capture, the capture service excludes its own UI and snapshots the relevant app scene before opening the editor or changing keyboard focus. An explicit reporter self-capture snapshots the visible reporter window instead.
 4. Editor presents the screenshot and focuses the description field.
 5. Developer describes the problem and optionally annotates the screenshot or adds expected behavior and reproduction notes.
 6. Save durably persists the report and assets, then closes the reporter.

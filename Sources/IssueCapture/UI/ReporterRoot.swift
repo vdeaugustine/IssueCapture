@@ -54,6 +54,13 @@ struct DiagnosticsView: View {
             }
         }
         .navigationTitle("Diagnostics")
-        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done", action: onClose) } }
+        .toolbar {
+            ToolbarItem(placement: .secondaryAction) {
+                Button("Capture IssueCapture screen", systemImage: "ladybug") {
+                    session.captureReporter()
+                }
+            }
+            ToolbarItem(placement: .confirmationAction) { Button("Done", action: onClose) }
+        }
     }
 }

@@ -42,16 +42,37 @@ final class CaptureSession {
         let candidates = screens.filter { screen in !screens.contains { $0.parentID == screen.id } }
         let contextStatus = candidates.count == 1 ? IssueContextStatus.accepted
             : candidates.isEmpty ? IssueContextStatus.missing : IssueContextStatus.ambiguous
+        prepareDraft(window: hostWindow, screens: screens, contextStatus: contextStatus,
+                     events: events, captureSurface: "host-app")
+        overlay?.present(.editor)
+    }
+
+    /// Captures the currently visible IssueCapture reporter instead of the host app.
+    func captureReporter() {
+        guard isPresenting, !isBusy else { return }
+        overlay?.captureReporter()
+    }
+
+    func prepareReporterDraft(window: UIWindow, screen: IssueScreenContext) {
+        guard isPresenting, !isBusy else { return }
+        prepareDraft(window: window, screens: [screen], contextStatus: IssueContextStatus.accepted,
+                     events: recorder.snapshot(), captureSurface: "issue-capture-reporter")
+        overlay?.showEditor()
+    }
+
+    private func prepareDraft(window: UIWindow?, screens: [IssueScreenContext],
+                              contextStatus: String, events: [IssueEvent],
+                              captureSurface: String) {
         let capturedAt = Date()
         recorder.setSuspended(true)
-        let snapshot = ScreenshotService.capture(window: hostWindow)
+        let snapshot = ScreenshotService.capture(window: window)
+        var environment = ScreenshotService.environment(window: window, configuration: configuration)
+        environment["captureSurface"] = captureSurface
         draft = IssueReport(projectID: configuration.projectID, capturedAt: capturedAt,
-            screens: screens, contextStatus: contextStatus,
-            environment: ScreenshotService.environment(window: hostWindow, configuration: configuration),
+            screens: screens, contextStatus: contextStatus, environment: environment,
             events: events, captureStatus: snapshot.1, hasScreenshot: snapshot.0 != nil)
         draftImage = snapshot.0
         draftAttachment = nil
-        overlay?.present(.editor)
     }
 
     func refresh() async {

@@ -32,7 +32,7 @@ Screen registration injects an instance-specific context into descendants. Recor
 
 ## Capture
 
-The source app window is rendered before the overlay becomes key and before the editor opens. The capture button belongs to a separate window and is excluded. The overlay becomes key only for reporting and restores the prior key window on close. It passes through touches outside its tab while idle.
+The source app window is rendered before the overlay becomes key and before the editor opens. The capture button belongs to a separate window and is excluded. While the reporter is open, an explicit self-capture action renders the overlay window instead and records an IssueCapture-owned screen context. The overlay becomes key only for reporting and restores the prior key window on close. It passes through touches outside its tab while idle.
 
 The app hierarchy render result is retained as a fidelity status, not a claim that all pixels are correct. Keyboard and system-owned surfaces may be absent. Manual attachment is the fallback.
 

@@ -6,11 +6,14 @@ final class CaptureOverlayController: UIViewController {
     private weak var session: CaptureSession?
     private let scene: UIWindowScene
     private var overlayWindow: PassthroughWindow?
+    private weak var reporterController: UIHostingController<ReporterRoot>?
+    private var destination: Destination = .editor
     private weak var previousKeyWindow: UIWindow?
     private var previousAccessibilityHidden: Bool?
     private let button = UIButton(type: .system)
     private var position = CGPoint(x: 1, y: 0.5)
     private var positionKey: String { "IssueCapture.tab." + scene.session.persistentIdentifier }
+    private let reporterScreenID = UUID()
 
     init(session: CaptureSession, scene: UIWindowScene) {
         self.session = session
@@ -33,6 +36,7 @@ final class CaptureOverlayController: UIViewController {
         overlayWindow?.isHidden = true
         overlayWindow?.rootViewController = nil
         overlayWindow = nil
+        reporterController = nil
         previousKeyWindow?.makeKey()
         restoreAccessibility()
         session?.recorder.setSuspended(false)
@@ -79,6 +83,7 @@ final class CaptureOverlayController: UIViewController {
 
     func present(_ destination: Destination) {
         guard presentedViewController == nil, let session else { return }
+        self.destination = destination
         session.isPresenting = true
         session.recorder.setSuspended(true)
         previousKeyWindow = scene.windows.first(where: \.isKeyWindow)
@@ -87,9 +92,40 @@ final class CaptureOverlayController: UIViewController {
         overlayWindow?.isModal = true
         overlayWindow?.makeKey()
         let controller = UIHostingController(rootView: ReporterRoot(session: session, destination: destination))
+        reporterController = controller
         controller.modalPresentationStyle = .fullScreen
         controller.view.accessibilityViewIsModal = true
         present(controller, animated: true)
+    }
+
+    func captureReporter() {
+        guard let session, let overlayWindow else { return }
+        session.prepareReporterDraft(window: overlayWindow, screen: reporterScreenContext)
+    }
+
+    func showEditor() {
+        guard let session, let reporterController else { return }
+        destination = .editor
+        reporterController.rootView = ReporterRoot(session: session, destination: .editor)
+    }
+
+    private var reporterScreenContext: IssueScreenContext {
+        let screenName: String
+        let typeName: String
+        switch destination {
+        case .editor:
+            screenName = "IssueCapture editor"
+            typeName = "IssueCapture.IssueEditor"
+        case .inbox:
+            screenName = "IssueCapture inbox"
+            typeName = "IssueCapture.IssueInbox"
+        case .diagnostics:
+            screenName = "IssueCapture diagnostics"
+            typeName = "IssueCapture.DiagnosticsView"
+        }
+        return IssueScreenContext(id: reporterScreenID, stableID: "issue-capture.\(screenName)",
+                                  name: screenName, typeName: typeName,
+                                  file: "IssueCapture", line: 0, parentID: nil)
     }
 
     private func restoreAccessibility() {
@@ -109,6 +145,7 @@ final class CaptureOverlayController: UIViewController {
             self.session?.draft = nil
             self.session?.draftImage = nil
             self.session?.draftAttachment = nil
+            self.reporterController = nil
         }
     }
 }

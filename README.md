@@ -87,6 +87,7 @@ Environment flows to descendants. Read the reporter inside the content wrapped b
 - Tap the purple tab to capture before opening the editor.
 - Drag the tab vertically or to either edge.
 - Touch and hold it for the inbox and diagnostics.
+- From the reporter, choose "Capture IssueCapture screen" to file a report about the reporter itself.
 - Write a description, optionally add expected behavior/steps, and draw arrows, rectangles, or pen marks.
 - Save locally. Later, select issues in the inbox and export a ZIP through AirDrop or Files.
 - Unzip on your Mac and give the agent `README.md` plus the linked issue folders. Image cards are also included by default.

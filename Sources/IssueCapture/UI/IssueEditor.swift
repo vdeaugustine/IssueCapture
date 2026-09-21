@@ -12,6 +12,7 @@ struct IssueEditor: View {
     @State private var annotating = false
     @State private var loadingPhoto = false
     @State private var confirmDiscard = false
+    @State private var confirmReporterCapture = false
     @State private var showDetails = false
     @State private var showContext = false
     @FocusState private var focus: Field?
@@ -57,6 +58,12 @@ struct IssueEditor: View {
         }
         .confirmationDialog("Discard changes?", isPresented: $confirmDiscard, titleVisibility: .visible) {
             Button("Discard", role: .destructive, action: onFinish)
+        }
+        .confirmationDialog("Capture the IssueCapture screen?", isPresented: $confirmReporterCapture,
+                            titleVisibility: .visible) {
+            Button("Capture IssueCapture screen") { session.captureReporter() }
+        } message: {
+            Text("This starts a new report and replaces the current draft. Save it first if you want to keep it.")
         }
         .onChange(of: photo) { _, selection in loadPhoto(selection) }
     }
@@ -136,6 +143,11 @@ struct IssueEditor: View {
                 Label("Issue box", systemImage: "tray.full")
             }
             .accessibilityHint("Opens saved issue reports")
+        }
+        ToolbarItem(placement: .secondaryAction) {
+            Button("Capture IssueCapture screen", systemImage: "ladybug") {
+                confirmReporterCapture = true
+            }
         }
         ToolbarItemGroup(placement: .keyboard) {
             Spacer()
