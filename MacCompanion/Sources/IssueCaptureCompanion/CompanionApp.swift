@@ -25,8 +25,9 @@ struct CompanionApp: App {
                     ProgressView().task { start() }
                 }
             }
-            .frame(minWidth: 1_080, minHeight: 640)
+            .frame(minWidth: 1_200, minHeight: 700)
         }
+        .defaultSize(width: 1_440, height: 860)
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("Open Export…") { openExport() }

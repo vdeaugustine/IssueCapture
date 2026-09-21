@@ -8,11 +8,20 @@ Version one works offline. It needs no API key and makes no model call.
 
 ## Build and run
 
+From the repository root, double-click **Run Mac Companion.command**. It builds
+and opens `dist/IssueCaptureCompanion.app`. This is the normal launch path.
+
+Codex also exposes the same launcher as its **Run** action. From a terminal, use:
+
 ```bash
-cd MacCompanion
-swift build -c release
-swift run -c release IssueCaptureCompanion
+./script/build_and_run.sh
 ```
+
+The `MacCompanion` directory is a separate Swift package. Opening only the root
+`Package.swift` in Xcode does not show its executable scheme. To work on the app
+in Xcode, open `MacCompanion/Package.swift`, then select the
+`IssueCaptureCompanion` scheme and **My Mac**. The root launcher remains the
+single supported way to build and open the finished app.
 
 Requires macOS 14+ and a Swift 6 toolchain. The package resolves the parent
 IssueCapture package by path and links only its Foundation-only

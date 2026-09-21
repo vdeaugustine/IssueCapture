@@ -4,6 +4,7 @@ import SwiftUI
 /// Right pane: the prepared request, its attachments, and the handoff actions.
 struct RequestPanelView: View {
     @Bindable var model: AppModel
+    @State private var confirmsDeletion = false
 
     var body: some View {
         Group {
@@ -77,6 +78,15 @@ struct RequestPanelView: View {
                 HStack(spacing: 10) {
                     Button("Copy prompt") { model.copyPrompt(handle) }
                     Button("Reveal folder") { model.revealFolder(handle) }
+                    Spacer()
+                    Button("Delete…", role: .destructive) { confirmsDeletion = true }
+                }
+                .confirmationDialog("Delete this prepared request?", isPresented: $confirmsDeletion,
+                                    titleVisibility: .visible) {
+                    Button("Delete Permanently", role: .destructive) { model.delete(request: handle) }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("This deletes the request folder from this Mac. The original issue evidence is not affected.")
                 }
                 FileDragView(urls: handle.dragURLs, label: AnyView(dragLabel(handle)))
                     .frame(height: 64)

@@ -8,6 +8,7 @@ struct BatchDetailView: View {
     @Bindable var model: AppModel
     @State private var groupName = ""
     @State private var instructions = ""
+    @State private var showsRelatedNotes = false
 
     var body: some View {
         Group {
@@ -24,6 +25,7 @@ struct BatchDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 reasons(batch)
+                adjustments(batch)
                 ForEach(batch.members) { member in
                     if let revision = model.revision(for: member) {
                         IssueCardView(model: model, revision: revision, batch: batch)
@@ -34,13 +36,14 @@ struct BatchDetailView: View {
                     }
                 }
                 relatedNotes(batch)
-                adjustments(batch)
             }
             .padding(16)
         }
+        .safeAreaInset(edge: .bottom) { prepareBar(batch) }
         .onChange(of: batch.id, initial: true) { _, _ in
             instructions = model.instructions(for: batch)
             groupName = batch.origin == .manual ? batch.title : ""
+            showsRelatedNotes = false
         }
     }
 
@@ -66,14 +69,18 @@ struct BatchDetailView: View {
         if !batch.relatedNotes.isEmpty {
             GroupBox {
                 VStack(alignment: .leading, spacing: 4) {
-                    ForEach(batch.relatedNotes) { note in
-                        let label = note.kind == .sharedTag
-                            ? "shares tag \"\(note.value)\"" : "shares event \(note.value)"
-                        Text("Issue \(note.issueID.uuidString) \(label)")
-                            .font(.caption).textSelection(.enabled)
+                    Text("\(batch.relatedNotes.count) metadata connection\(batch.relatedNotes.count == 1 ? "" : "s") found. These do not merge issues automatically.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    DisclosureGroup("Show connections", isExpanded: $showsRelatedNotes) {
+                        LazyVStack(alignment: .leading, spacing: 5) {
+                            ForEach(batch.relatedNotes) { note in
+                                RelatedNoteRow(note: note)
+                            }
+                        }
+                        .padding(.top, 6)
                     }
-                    Text("Related items are shown for context only. They never merge requests on their own.")
-                        .font(.caption2).foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             } label: {
@@ -104,14 +111,51 @@ struct BatchDetailView: View {
                     .frame(minHeight: 60)
                     .border(.separator)
                     .onChange(of: instructions) { _, value in model.setInstructions(value, for: batch) }
-                Button("Prepare request") { model.prepare(batch: batch) }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(batch.members.isEmpty)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         } label: {
             Label("Adjust", systemImage: "slider.horizontal.below.rectangle")
         }
+    }
+
+    private func prepareBar(_ batch: CandidateBatch) -> some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text("\(batch.members.count) issue\(batch.members.count == 1 ? "" : "s") selected")
+                    .font(.callout.weight(.medium))
+                Text("Creates a request with chosen evidence files.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button("Prepare Request") { model.prepare(batch: batch) }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .keyboardShortcut(.defaultAction)
+                .disabled(batch.members.isEmpty)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(.bar)
+        .overlay(alignment: .top) { Divider() }
+    }
+}
+
+/// One optional metadata connection shown only when the user expands the list.
+private struct RelatedNoteRow: View {
+    let note: RelatedNote
+
+    var body: some View {
+        let label = note.kind == .sharedTag
+            ? "Shared tag: \(note.value)" : "Shared event: \(note.value)"
+        VStack(alignment: .leading, spacing: 1) {
+            Text(label).font(.caption.weight(.medium))
+            Text(note.issueID.uuidString)
+                .font(.caption2.monospaced())
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -121,6 +165,7 @@ struct IssueCardView: View {
     let revision: IssueRevision
     let batch: CandidateBatch
     @State private var isExpanded = false
+    @State private var confirmsDeletion = false
 
     var body: some View {
         GroupBox {
@@ -150,6 +195,9 @@ struct IssueCardView: View {
             }
             Text(revision.issueKey.issueID.uuidString)
                 .font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .help(revision.issueKey.issueID.uuidString)
             Text("Revision \(revision.revisionIndex) · captured \(revision.report.capturedAt.formatted(date: .abbreviated, time: .shortened))")
                 .font(.caption2).foregroundStyle(.secondary)
         }
@@ -199,13 +247,30 @@ struct IssueCardView: View {
     private var controls: some View {
         HStack {
             Button(isExpanded ? "Show less" : "Show full report") { isExpanded.toggle() }
-                .buttonStyle(.link)
+                .buttonStyle(.borderless)
+                .contentShape(Rectangle())
+                .padding(.vertical, 4)
             Spacer()
             if batch.origin == .manual {
                 Button("Return to rules") { model.unassign(revision: revision) }
-                    .buttonStyle(.link)
+                    .buttonStyle(.borderless)
+                    .contentShape(Rectangle())
+                    .padding(.vertical, 4)
             }
+            Button("Delete Issue…", role: .destructive) { confirmsDeletion = true }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.red)
+                .contentShape(Rectangle())
+                .padding(.vertical, 4)
         }
         .font(.caption)
+        .confirmationDialog("Delete this issue?", isPresented: $confirmsDeletion, titleVisibility: .visible) {
+            Button("Delete Permanently", role: .destructive) {
+                model.delete(issue: revision.issueKey)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This deletes \(revision.report.displayID) and all its evidence from this Mac. It cannot be undone.")
+        }
     }
 }

@@ -233,6 +233,62 @@ final class AppModel {
         state.overrides.instructions[batch.id] = text.isEmpty ? nil : text
     }
 
+    // MARK: - Deleting
+
+    /// Permanently deletes one issue's entire history from the store.
+    func delete(issue key: IssueKey) {
+        do {
+            try store.deleteIssues([key])
+            state.overrides.forget(key: key)
+            state.issueStates.removeValue(forKey: CompanionState.key(key))
+            refresh()
+        } catch {
+            problems.append(.init(source: key.issueID.uuidString,
+                                  failure: .init(code: .storageFailure, detail: error.localizedDescription)))
+        }
+    }
+
+    /// Permanently deletes every issue in a candidate request.
+    func delete(batch: CandidateBatch) {
+        let keys = Set(batch.members.map(\.key))
+        do {
+            try store.deleteIssues(keys)
+            for key in keys {
+                state.overrides.forget(key: key)
+                state.issueStates.removeValue(forKey: CompanionState.key(key))
+            }
+            refresh()
+        } catch {
+            problems.append(.init(source: batch.title,
+                                  failure: .init(code: .storageFailure, detail: error.localizedDescription)))
+        }
+    }
+
+    /// Removes a prepared request folder without touching the underlying evidence.
+    func delete(request handle: PreparedRequestHandle) {
+        assembler.delete(handle)
+        state.requestStates.removeValue(forKey: handle.request.id.uuidString)
+        if selectedRequestID == handle.request.id { selectedRequestID = nil }
+        refresh()
+    }
+
+    /// Wipes every import, issue and prepared request. This cannot be undone.
+    func deleteEverything() {
+        do {
+            try store.deleteEverything()
+            state = CompanionState(preferences: state.preferences)
+            selectedBatchID = nil
+            selectedIssueID = nil
+            selectedRequestID = nil
+            problems.removeAll()
+            summaries.removeAll()
+            refresh()
+        } catch {
+            problems.append(.init(source: "evidence store",
+                                  failure: .init(code: .storageFailure, detail: error.localizedDescription)))
+        }
+    }
+
     // MARK: - Requests
 
     /// Prepares a request folder for the selected batch.

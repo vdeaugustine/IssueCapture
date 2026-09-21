@@ -143,8 +143,10 @@ public enum ExportValidator {
     private static func readImageMap(in folder: URL) -> ([String: String], [ImportWarning]) {
         let url = folder.appendingPathComponent("images.json")
         guard FileManager.default.fileExists(atPath: url.path) else {
+            let legacyMap = legacyImageMap(in: folder)
+            if !legacyMap.isEmpty { return (legacyMap, []) }
             return ([:], [.init(code: .missingImageMap,
-                                detail: "images.json is absent, so declared image filenames cannot be resolved.")])
+                                detail: "images.json is absent and no legacy IssueCapture image filenames were found.")])
         }
         guard let data = try? Data(contentsOf: url),
               let map = try? JSONDecoder().decode([String: String].self, from: data) else {
@@ -152,6 +154,20 @@ public enum ExportValidator {
                                 detail: "images.json could not be decoded, so declared image filenames cannot be resolved.")])
         }
         return (map, [])
+    }
+
+    /// Resolves early schema-v1 exports that used canonical PNG filenames but
+    /// did not yet write `images.json`. A kind is accepted only when exactly one
+    /// known basename/extension combination exists, avoiding filename guessing.
+    private static func legacyImageMap(in folder: URL) -> [String: String] {
+        var result: [String: String] = [:]
+        for kind in IssueExportImageKind.allCases {
+            let candidates = ["png", "jpg", "jpeg"].map { "\(kind.basename).\($0)" }.filter {
+                FileManager.default.fileExists(atPath: folder.appendingPathComponent($0).path)
+            }
+            if candidates.count == 1 { result[kind.rawValue] = candidates[0] }
+        }
+        return result
     }
 
     /// Flags assets the report claims exist but the export did not name.

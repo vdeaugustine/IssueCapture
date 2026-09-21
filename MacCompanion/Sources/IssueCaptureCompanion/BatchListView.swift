@@ -4,6 +4,7 @@ import SwiftUI
 /// Sidebar listing candidate requests, grouped by project and build partition.
 struct BatchListView: View {
     @Bindable var model: AppModel
+    @State private var pendingDeletion: CandidateBatch?
 
     private var partitions: [(key: String, title: String, batches: [CandidateBatch])] {
         var order: [String] = []
@@ -29,7 +30,11 @@ struct BatchListView: View {
             ForEach(partitions, id: \.key) { partition in
                 Section {
                     ForEach(partition.batches) { batch in
-                        row(batch).tag(batch.id)
+                        row(batch)
+                            .tag(batch.id)
+                            .contextMenu {
+                                Button("Delete Request…", role: .destructive) { pendingDeletion = batch }
+                            }
                     }
                 } header: {
                     Text(partition.title).font(.caption)
@@ -39,6 +44,22 @@ struct BatchListView: View {
         .listStyle(.sidebar)
         .navigationTitle("Candidate requests")
         .overlay(alignment: .bottom) { footer }
+        .confirmationDialog(
+            deletionTitle, isPresented: Binding(get: { pendingDeletion != nil },
+                                                set: { if !$0 { pendingDeletion = nil } }),
+            titleVisibility: .visible) {
+            Button("Delete Permanently", role: .destructive) {
+                if let batch = pendingDeletion { model.delete(batch: batch) }
+                pendingDeletion = nil
+            }
+            Button("Cancel", role: .cancel) { pendingDeletion = nil }
+        } message: {
+            Text("This deletes \(pendingDeletion?.members.count ?? 0) issue(s) and all their evidence from this Mac. It cannot be undone.")
+        }
+    }
+
+    private var deletionTitle: String {
+        "Delete \"\(pendingDeletion?.title ?? "")\"?"
     }
 
     private func row(_ batch: CandidateBatch) -> some View {
@@ -46,12 +67,19 @@ struct BatchListView: View {
             HStack(spacing: 6) {
                 Image(systemName: batch.origin == .manual ? "hand.point.up.left.fill" : "square.stack.3d.up")
                     .foregroundStyle(batch.origin == .manual ? Color.accentColor : .secondary)
-                Text(batch.title).font(.body.weight(.medium)).lineLimit(1)
+                Text(batch.title)
+                    .font(.body.weight(.medium))
+                    .lineLimit(2)
+                    .help(batch.title)
             }
             Text("\(batch.members.count) issue\(batch.members.count == 1 ? "" : "s")")
                 .font(.caption).foregroundStyle(.secondary)
             if let reason = batch.reasons.first {
-                Text(reason.detail).font(.caption2).foregroundStyle(.secondary).lineLimit(2)
+                Text(reason.detail)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(3)
+                    .help(reason.detail)
             }
         }
         .padding(.vertical, 2)

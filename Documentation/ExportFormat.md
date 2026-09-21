@@ -34,6 +34,9 @@ stored source images and report text are never modified.
 Compressed files use `.jpg` instead of `.png`. `images.json` maps `screenshot`,
 `attachment`, `annotation`, and `card` to the files actually included. Markdown links
 use those same filenames. Consumers should resolve this map instead of assuming PNG.
+Early schema-v1 exports may omit `images.json` while retaining the canonical PNG
+filenames above. Readers may recognize those exact legacy basenames; they must not
+infer arbitrary image files by directory order or unrelated filenames.
 
 Issue JSON includes optional `tags`; older reports with no tags remain readable.
 The export README groups links by tag, with an issue appearing under each applicable

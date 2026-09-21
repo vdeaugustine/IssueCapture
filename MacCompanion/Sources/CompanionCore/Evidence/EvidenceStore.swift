@@ -188,6 +188,31 @@ public final class EvidenceStore {
         }
     }
 
+    // MARK: - Deleting
+
+    /// Removes every revision for the given issues, along with their files on
+    /// disk. Import receipts are left in place since other issues may still
+    /// reference them.
+    public func deleteIssues(_ keys: Set<IssueKey>) throws {
+        guard !keys.isEmpty else { return }
+        for revision in index.revisions where keys.contains(revision.issueKey) {
+            let folder = root.appendingPathComponent(revision.path)
+            try? fileManager.removeItem(at: folder)
+        }
+        index.revisions.removeAll { keys.contains($0.issueKey) }
+        try save()
+    }
+
+    /// Erases every import, revision and prepared request, returning storage
+    /// to its just-created state. This cannot be undone.
+    public func deleteEverything() throws {
+        for name in ["issues", "imports", "requests"] {
+            try? fileManager.removeItem(at: root.appendingPathComponent(name))
+        }
+        index = StoreIndex()
+        try save()
+    }
+
     private func save() throws {
         do {
             let data = try IssueExportSchema.encoder().encode(index)

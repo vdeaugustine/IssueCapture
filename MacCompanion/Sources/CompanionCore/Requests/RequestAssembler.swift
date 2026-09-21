@@ -113,6 +113,11 @@ public final class RequestAssembler {
         }.sorted { $0.request.preparedAt > $1.request.preparedAt }
     }
 
+    /// Deletes a prepared request folder from disk.
+    public func delete(_ handle: PreparedRequestHandle) {
+        try? fileManager.removeItem(at: handle.folder)
+    }
+
     private func copyEvidence(revision: IssueRevision, into destination: URL) throws {
         let source = store.root.appendingPathComponent(revision.path)
         if fileManager.fileExists(atPath: destination.path) { return }

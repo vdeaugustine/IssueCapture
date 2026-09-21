@@ -149,4 +149,10 @@ public struct BatchOverrides: Codable, Sendable, Hashable {
         if excluded { if !exclusions.contains(entry) { exclusions.append(entry) } }
         else { exclusions.removeAll { $0 == entry } }
     }
+
+    /// Removes every assignment and exclusion recorded for an issue.
+    public mutating func forget(key: IssueKey) {
+        assignments.removeAll { $0.key == key }
+        exclusions.removeAll { $0.key == key }
+    }
 }

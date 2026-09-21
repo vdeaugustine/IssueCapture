@@ -29,20 +29,8 @@ struct IssueInbox: View {
 
     var body: some View {
         List {
-            Section {
-                Toggle("Today only", isOn: $todayOnly)
-                Toggle("Not previously exported", isOn: $newOnly)
-                Picker("Tag", selection: $tagFilter) {
-                    Text("All tags").tag("")
-                    ForEach(Array(Set(session.reports.flatMap { $0.tags ?? [] })).sorted(), id: \.self) { tag in
-                        Text(tag).tag(tag)
-                    }
-                }
-                Button("Select visible (\(filtered.count))") { selected.formUnion(filtered.map(\.id)) }
-            }
             Section("\(selected.count) selected · \(filtered.count) visible") {
                 if filtered.isEmpty { ContentUnavailableView("No issues", systemImage: "tray", description: Text("Capture an issue using the floating tab.")) }
-                if !selected.isEmpty { Button("Clear selection") { selected = [] } }
                 ForEach(filtered) { report in
                     HStack(alignment: .top, spacing: 12) {
                         Button { toggle(report.id) } label: {
@@ -63,13 +51,6 @@ struct IssueInbox: View {
                 }
             }
             Section {
-                Button(exporting ? "Preparing export…" : "Export selected (\(selected.count))…", systemImage: "square.and.arrow.up") {
-                    exportOptions = ExportRoute(reports: session.reports.filter { selected.contains($0.id) })
-                }
-                    .disabled(selected.isEmpty || exporting)
-                Button("Copy agent prompt", systemImage: "doc.on.doc") { UIPasteboard.general.string = IssueMarkdown.agentPrompt }
-                Button("Delete selected", role: .destructive) { confirmDelete = true }
-                    .disabled(selected.isEmpty || exporting)
                 Text("Export preparation is tracked; delivery and fixes are not. Saved reports remain until deleted. Removing this app can remove its reports.")
                     .font(.caption).foregroundStyle(.secondary)
             }
@@ -79,7 +60,7 @@ struct IssueInbox: View {
         .interactiveDismissDisabled(exporting)
         .disabled(exporting)
         .overlay { if exporting { ProgressView("Preparing export…").padding().background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16)) } }
-        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done", action: onClose).disabled(exporting) } }
+        .toolbar { toolbarContent }
         .task { await session.refresh() }
         .sheet(item: $editor) { route in
             NavigationStack {
@@ -106,6 +87,48 @@ struct IssueInbox: View {
             Button("Delete reports", role: .destructive) { deleteSelected() }
         }
     }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) { filterMenu }
+        ToolbarItem(placement: .confirmationAction) { Button("Done", action: onClose).disabled(exporting) }
+        ToolbarItemGroup(placement: .bottomBar) {
+            Button(exporting ? "Preparing…" : "Export (\(selected.count))", systemImage: "square.and.arrow.up") {
+                exportOptions = ExportRoute(reports: session.reports.filter { selected.contains($0.id) })
+            }
+            .disabled(selected.isEmpty || exporting)
+            Spacer()
+            Button("Copy agent prompt", systemImage: "doc.on.doc") {
+                UIPasteboard.general.string = IssueMarkdown.agentPrompt
+            }
+            .labelStyle(.iconOnly)
+            Spacer()
+            Button("Delete", systemImage: "trash", role: .destructive) { confirmDelete = true }
+                .labelStyle(.iconOnly)
+                .disabled(selected.isEmpty || exporting)
+        }
+    }
+
+    private var filterMenu: some View {
+        Menu {
+            Toggle("Today only", isOn: $todayOnly)
+            Toggle("Not previously exported", isOn: $newOnly)
+            Picker("Tag", selection: $tagFilter) {
+                Text("All tags").tag("")
+                ForEach(Array(Set(session.reports.flatMap { $0.tags ?? [] })).sorted(), id: \.self) { tag in
+                    Text(tag).tag(tag)
+                }
+            }
+            Divider()
+            Button("Select visible (\(filtered.count))") { selected.formUnion(filtered.map(\.id)) }
+            Button("Clear selection") { selected = [] }.disabled(selected.isEmpty)
+        } label: {
+            Label("Filter", systemImage: filtersActive ? "line.3.horizontal.decrease.circle.fill"
+                                                       : "line.3.horizontal.decrease.circle")
+        }
+    }
+
+    private var filtersActive: Bool { todayOnly || newOnly || !tagFilter.isEmpty }
 
     private func toggle(_ id: UUID) {
         if selected.contains(id) { selected.remove(id) } else { selected.insert(id) }

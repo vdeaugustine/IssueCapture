@@ -1,3 +1,4 @@
+import AppKit
 import CompanionCore
 import SwiftUI
 import UniformTypeIdentifiers
@@ -6,19 +7,28 @@ import UniformTypeIdentifiers
 struct InboxView: View {
     @Bindable var model: AppModel
     @State private var showsPreferences = false
+    @State private var confirmsWipe = false
 
     var body: some View {
-        NavigationSplitView {
-            BatchListView(model: model)
-                .navigationSplitViewColumnWidth(min: 260, ideal: 300)
-        } content: {
-            BatchDetailView(model: model)
-                .navigationSplitViewColumnWidth(min: 360, ideal: 440)
-        } detail: {
-            RequestPanelView(model: model)
-                .navigationSplitViewColumnWidth(min: 360, ideal: 420)
+        VStack(spacing: 0) {
+            banners
+            NavigationSplitView {
+                BatchListView(model: model)
+                    .navigationSplitViewColumnWidth(min: 280, ideal: 320, max: 380)
+            } content: {
+                BatchDetailView(model: model)
+                    .navigationSplitViewColumnWidth(min: 480, ideal: 620)
+            } detail: {
+                RequestPanelView(model: model)
+                    .navigationSplitViewColumnWidth(min: 320, ideal: 400, max: 480)
+            }
         }
         .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: openExport) {
+                    Label("Import Export", systemImage: "tray.and.arrow.down")
+                }
+            }
             ToolbarItem(placement: .navigation) {
                 Button {
                     showsPreferences = true
@@ -26,13 +36,39 @@ struct InboxView: View {
                     Label("Preferences", systemImage: "slider.horizontal.3")
                 }
             }
+            ToolbarItem(placement: .destructiveAction) {
+                Button(role: .destructive) {
+                    confirmsWipe = true
+                } label: {
+                    Label("Clear All", systemImage: "trash")
+                }
+                .disabled(model.batches.isEmpty && model.requests.isEmpty)
+            }
         }
-        .safeAreaInset(edge: .top) { banners }
         .sheet(isPresented: $showsPreferences) { PreferencesView(model: model) }
         .onDrop(of: [.fileURL], isTargeted: nil) { providers in
             load(providers)
             return true
         }
+        .confirmationDialog("Delete everything imported into this companion?", isPresented: $confirmsWipe,
+                            titleVisibility: .visible) {
+            Button("Delete Everything Permanently", role: .destructive) { model.deleteEverything() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This permanently deletes every imported issue, its evidence, and every prepared request from this Mac. It cannot be undone.")
+        }
+    }
+
+    private func openExport() {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = true
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = true
+        panel.allowedContentTypes = [.zip, .folder]
+        panel.message = "Choose an IssueCapture export ZIP or expanded folder."
+        panel.prompt = "Import"
+        guard panel.runModal() == .OK else { return }
+        model.importSources(panel.urls)
     }
 
     @ViewBuilder private var banners: some View {
@@ -64,6 +100,7 @@ struct InboxView: View {
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.bar)
+            Divider()
         }
     }
 
@@ -103,6 +140,7 @@ struct BannerRow<Actions: View>: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.callout.weight(.medium))
                 Text(detail).font(.caption).foregroundStyle(.secondary)
+                    .lineLimit(3)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 12)
