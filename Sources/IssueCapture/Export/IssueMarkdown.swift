@@ -10,6 +10,7 @@ enum IssueMarkdown {
 
     static func render(_ report: IssueReport, images: [String: String]) -> String {
         var text = "# \(report.displayID)\n\nUUID: \(report.id)\n\nCaptured: \(report.capturedAt.ISO8601Format())\n\n"
+        text += "Project: \(report.projectID)\n\nUpdated: \(report.updatedAt.ISO8601Format())\n\n"
         text += "Tags: \((report.tags ?? []).joined(separator: ", "))\n\n"
         text += "## Description\n\n\(report.description)\n\n"
         text += "## Expected behavior\n\n\(report.expectedBehavior.isEmpty ? "Not supplied" : report.expectedBehavior)\n\n"
@@ -23,7 +24,7 @@ enum IssueMarkdown {
         text += "\n## Observed breadcrumbs\n\n"
         for event in report.events {
             text += "- \(event.timestamp.ISO8601Format()) #\(event.sequence) [\(event.category)] \(event.name)"
-            text += " — \(event.screen?.name ?? "UNSCOPED")\n"
+            text += " — \(event.screen?.name ?? "UNSCOPED") — `\(event.file):\(event.line)`\n"
             for (key, value) in event.metadata.sorted(by: { $0.key < $1.key }) { text += "  - \(key): \(value)\n" }
         }
         text += "\n## Attachments\n\nCapture: \(report.captureStatus)\n\n"

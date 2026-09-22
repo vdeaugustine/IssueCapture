@@ -15,6 +15,7 @@ struct IssueInbox: View {
     @State private var share: ShareRoute?
     @State private var exporting = false
     @State private var loadingEditor = false
+    @State private var copyNotice: String?
 
     private var filtered: [IssueReport] {
         session.reports.filter {
@@ -47,6 +48,12 @@ struct IssueInbox: View {
                                 Text(report.capturedAt, style: .date).font(.caption).foregroundStyle(.secondary)
                             }.frame(maxWidth: .infinity, alignment: .leading)
                         }.buttonStyle(.plain).disabled(loadingEditor)
+                        Menu {
+                            handoffActions([report])
+                        } label: {
+                            Image(systemName: "square.and.arrow.up").frame(minWidth: 44, minHeight: 44)
+                        }
+                        .accessibilityLabel("Share \(report.displayID)")
                     }
                 }
             }
@@ -83,6 +90,10 @@ struct IssueInbox: View {
             }
         }
         .sheet(item: $share) { route in ShareSheet(url: route.url) }
+        .alert("Copied", isPresented: Binding(get: { copyNotice != nil },
+                                             set: { if !$0 { copyNotice = nil } })) {
+            Button("OK") { copyNotice = nil }
+        } message: { Text(copyNotice ?? "") }
         .confirmationDialog("Permanently delete \(selected.count) reports?", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete reports", role: .destructive) { deleteSelected() }
         }
@@ -98,8 +109,10 @@ struct IssueInbox: View {
             }
         }
         ToolbarItemGroup(placement: .bottomBar) {
-            Button(exporting ? "Preparing…" : "Export (\(selected.count))", systemImage: "square.and.arrow.up") {
-                exportOptions = ExportRoute(reports: session.reports.filter { selected.contains($0.id) })
+            Menu {
+                handoffActions(session.reports.filter { selected.contains($0.id) })
+            } label: {
+                Label("Export (\(selected.count))", systemImage: "square.and.arrow.up")
             }
             .disabled(selected.isEmpty || exporting)
             Spacer()
@@ -111,6 +124,38 @@ struct IssueInbox: View {
             Button("Delete", systemImage: "trash", role: .destructive) { confirmDelete = true }
                 .labelStyle(.iconOnly)
                 .disabled(selected.isEmpty || exporting)
+        }
+    }
+
+    @ViewBuilder
+    private func handoffActions(_ reports: [IssueReport]) -> some View {
+        Button("Copy for Codex", systemImage: "doc.on.doc") { handoff(reports, action: .text) }
+        Button("Share PDF", systemImage: "doc.richtext") { handoff(reports, action: .sharePDF) }
+        Button("Copy PDF", systemImage: "doc.on.clipboard") { handoff(reports, action: .copyPDF) }
+        Button("Export ZIP…", systemImage: "archivebox") { exportOptions = ExportRoute(reports: reports) }
+    }
+
+    private enum HandoffAction { case text, sharePDF, copyPDF }
+
+    private func handoff(_ reports: [IssueReport], action: HandoffAction) {
+        exporting = true
+        Task {
+            defer { exporting = false }
+            do {
+                switch action {
+                case .text:
+                    try await IssueHandoff.copyText(reports)
+                    copyNotice = "Issue text and complete metadata copied. Paste into Codex. Images are available through PDF or ZIP."
+                case .sharePDF:
+                    share = ShareRoute(url: try await IssueExporter.shared.exportPDF(reports))
+                case .copyPDF:
+                    let url = try await IssueExporter.shared.exportPDF(reports)
+                    defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+                    try IssueHandoff.copyPDF(url)
+                    copyNotice = "PDF copied with text, metadata, and images. If the destination does not accept PDF paste, use Share PDF to save or attach it."
+                }
+                await session.refresh()
+            } catch { session.errorMessage = error.localizedDescription }
         }
     }
 

@@ -41,3 +41,26 @@ infer arbitrary image files by directory order or unrelated filenames.
 Issue JSON includes optional `tags`; older reports with no tags remain readable.
 The export README groups links by tag, with an issue appearing under each applicable
 tag. The inbox supports exact tag filtering and tag search before selection.
+
+## Direct handoffs (no archive)
+
+Each saved inbox row has a share menu; the selection export menu offers the same
+choices for multiple issues:
+
+- **Copy for Codex** copies the agent prompt, complete readable issue text, observed
+  breadcrumbs with recording source locations, and complete report JSON. JSON
+  preserves all event/session/scene IDs, scoped screen context, annotation paths,
+  and metadata. Text copy does not include image bytes.
+- **Share PDF** prepares one standalone PDF and opens the system share sheet.
+  Text and complete report JSON paginate without truncation. Each issue includes
+  separate pages for its original screenshot, manual attachment, and annotated
+  evidence when present. Images fit the page without changing stored originals.
+- **Copy PDF** places PDF data on the system clipboard. PDF paste depends on the
+  receiving app; use Share PDF to save or attach the file when paste is unsupported.
+- **Export ZIP** retains the existing archive and per-image quality options. Use
+  ZIP for companion import, machine-readable asset files, or original-resolution
+  evidence inspection. Standalone PDFs are not companion import archives.
+
+Copy and PDF preparation are tracked as export preparation, never delivery or
+resolution. PDF exports use full evidence images and do not apply ZIP image-quality
+settings. The system clipboard may sync between devices according to OS settings.

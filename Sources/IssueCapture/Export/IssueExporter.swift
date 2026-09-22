@@ -27,6 +27,27 @@ actor IssueExporter {
         }
     }
 
+    func exportPDF(_ reports: [IssueReport]) async throws -> URL {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("IssueCapture-" + UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let name = reports.count == 1 ? reports[0].displayID : "IssueCapture-\(reports.count)-issues"
+        let url = root.appendingPathComponent(name).appendingPathExtension("pdf")
+        do {
+            var evidence: [IssuePDFRenderer.Evidence] = []
+            for report in reports {
+                let screenshot = try await ReportStore.shared.image(report)
+                let attachment = try await ReportStore.shared.image(report, attachment: true)
+                evidence.append(.init(report: report, screenshot: screenshot, attachment: attachment))
+            }
+            try await IssuePDFRenderer.write(evidence, to: url)
+            try await ReportStore.shared.markExportPrepared(reports, at: Date())
+            return url
+        } catch {
+            try? FileManager.default.removeItem(at: root)
+            throw error
+        }
+    }
+
     private func write(_ report: IssueReport, root: URL, options: ExportImageOptions) async throws {
         let folder = root.appendingPathComponent("issues").appendingPathComponent(report.id.uuidString)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)

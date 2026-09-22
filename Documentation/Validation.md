@@ -39,3 +39,13 @@ These unverified cases are not claimed as passed. Capture status explicitly desc
   produced by per-image encoding, including PNG fallback when JPEG is larger.
 - Tests were not run, per repository instructions. Interactive device validation
   remains pending for annotation gestures, Photos selection, VoiceOver, and sharing.
+
+## 2026-09-22 — Direct issue handoffs
+
+- iOS Simulator build passed using the IssueCapture scheme, generic simulator
+  destination, and code signing disabled (arm64 and x86_64).
+- `git diff --check` passed. Changed source files remain below 500 lines.
+- Tests not run, per repository instructions.
+- Runtime PDF pagination, image appearance, clipboard acceptance in Codex, and
+  system share-sheet delivery have not been manually verified. Clipboard PDF
+  support depends on the receiving app; Share PDF provides a file fallback.
