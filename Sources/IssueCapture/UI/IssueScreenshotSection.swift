@@ -1,7 +1,7 @@
 import SwiftUI
 import PhotosUI
 
-/// Collapsed-by-default image row for the issue editor.
+/// Expanded evidence preview for the issue editor.
 ///
 /// The preview never receives touches, so scrolling past it cannot draw on the
 /// image; annotating is an explicit action that opens the full editor.
@@ -13,7 +13,7 @@ struct IssueScreenshotSection: View {
     @Binding var photo: PhotosPickerItem?
     let loadingPhoto: Bool
     let onAnnotate: () -> Void
-    @State private var expanded = false
+    @State private var expanded = true
 
     private var preview: UIImage? { screenshot ?? attachment }
     private var annotationCount: Int { annotations.count }
@@ -36,7 +36,9 @@ struct IssueScreenshotSection: View {
                 }
                 .disabled(loadingPhoto)
                 if !captureStatus.isEmpty {
-                    Text(captureStatus).font(.caption).foregroundStyle(.secondary)
+                    DisclosureGroup("Capture details") {
+                        Text(captureStatus).font(.caption).foregroundStyle(.secondary)
+                    }
                 }
             } label: {
                 header
@@ -60,7 +62,7 @@ struct IssueScreenshotSection: View {
     private var subtitle: String {
         if loadingPhoto { return "Loading image…" }
         if preview == nil { return "Tap to attach one" }
-        return annotationCount == 0 ? "Tap to preview or annotate" : "\(annotationCount) annotations"
+        return annotationCount == 0 ? "Captured automatically · ready to annotate" : "\(annotationCount) annotations"
     }
 
     @ViewBuilder
@@ -82,15 +84,18 @@ struct IssueScreenshotSection: View {
     }
 
     private func imagePreview(_ image: UIImage, annotated: Bool) -> some View {
-        Image(uiImage: image)
-            .resizable()
-            .scaledToFit()
-            .frame(maxWidth: .infinity)
-            .frame(maxHeight: 260)
-            .overlay { if annotated { annotationOverlay } }
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            .allowsHitTesting(false)
-            .accessibilityLabel("Issue image preview")
+        GeometryReader { geometry in
+            let scale = min(geometry.size.width / image.size.width, geometry.size.height / image.size.height)
+            Image(uiImage: image)
+                .resizable()
+                .frame(width: image.size.width * scale, height: image.size.height * scale)
+                .overlay { if annotated { annotationOverlay } }
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .frame(height: 180)
+        .allowsHitTesting(false)
+        .accessibilityLabel("Issue image preview")
     }
 
     private var annotationOverlay: some View {

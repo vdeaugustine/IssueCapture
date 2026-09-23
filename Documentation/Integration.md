@@ -51,3 +51,16 @@ The package preserves multiple active registration candidates and reports uncert
 ## Adoption prompt
 
 > Adopt IssueCapture in this app. Read its integration contract, add the dependency and development-only scene host, inventory destinations, register screens, and instrument meaningful existing action handlers. Use inherited reporter context correctly. Add the contract reference to AGENTS.md and document uninstrumented surfaces. Preserve app behavior and follow repository validation instructions.
+
+## Floating button styling
+
+Pass `captureButtonAppearance: CaptureButtonAppearance(...)` in the host
+configuration to set `backgroundColor`, `foregroundColor`, and `diameter`.
+UIKit dynamic colors support light and dark appearances. Defaults use
+`secondarySystemBackground`, `label`, and 48 points. Sizes are constrained to
+44–80 points; nonfinite values fall back to 48. `showsCaptureTab: false` and
+disabled-host behavior remain unchanged.
+
+Reporters can hold the floating button and open **Button appearance**, or find it
+in the saved-issues toolbar menu. These live changes apply only to that host
+session. Use configuration for persistent app defaults.

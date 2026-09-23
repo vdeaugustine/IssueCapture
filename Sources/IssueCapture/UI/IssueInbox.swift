@@ -30,18 +30,43 @@ struct IssueInbox: View {
 
     var body: some View {
         List {
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("Ready for your next fix", systemImage: "tray.full.fill")
+                        .font(.title3.weight(.semibold))
+                    Text("Review evidence, select reports, then send everything your coding agent needs.")
+                        .font(.subheadline).foregroundStyle(.secondary)
+                    Text("\(session.reports.count) saved · \(session.reports.filter { $0.exportPreparedAt.isEmpty }.count) not yet exported")
+                        .font(.caption.weight(.medium)).foregroundStyle(.secondary)
+                }.padding(.vertical, 8)
+                if !filtered.isEmpty {
+                    Button(selected.isSuperset(of: Set(filtered.map(\.id))) ? "Clear visible selection" : "Select all visible") {
+                        let visible = Set(filtered.map(\.id))
+                        if selected.isSuperset(of: visible) { selected.subtract(visible) }
+                        else { selected.formUnion(visible) }
+                    }
+                }
+            }
             Section("\(selected.count) selected · \(filtered.count) visible") {
-                if filtered.isEmpty { ContentUnavailableView("No issues", systemImage: "tray", description: Text("Capture an issue using the floating tab.")) }
+                if filtered.isEmpty {
+                    ContentUnavailableView(session.reports.isEmpty ? "Your next fix starts here" : "No matching reports",
+                        systemImage: session.reports.isEmpty ? "viewfinder" : "magnifyingglass",
+                        description: Text(session.reports.isEmpty ? "Return to your app and tap the floating capture button." : "Try another search or clear your filters."))
+                    if filtersActive || !search.isEmpty {
+                        Button("Clear search and filters") { search = ""; todayOnly = false; newOnly = false; tagFilter = "" }
+                    }
+                }
                 ForEach(filtered) { report in
                     HStack(alignment: .top, spacing: 12) {
                         Button { toggle(report.id) } label: {
                             Image(systemName: selected.contains(report.id) ? "checkmark.circle.fill" : "circle")
                                 .font(.title2).frame(minWidth: 44, minHeight: 44)
                         }.buttonStyle(.borderless).accessibilityLabel("Select \(report.displayID)")
+                        .accessibilityValue(selected.contains(report.id) ? "Selected" : "Not selected")
                         Button { open(report) } label: {
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(report.displayID).font(.caption.monospaced()).foregroundStyle(.secondary)
-                                Text(report.description).lineLimit(3).foregroundStyle(.primary)
+                                Text(report.description).font(.headline).lineLimit(3).foregroundStyle(.primary)
                                 if let tags = report.tags, !tags.isEmpty {
                                     Text(tags.joined(separator: " · ")).font(.caption).foregroundStyle(.tint)
                                 }
@@ -62,7 +87,11 @@ struct IssueInbox: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
-        .navigationTitle("Issue inbox")
+        .navigationTitle("Saved issues")
+        .listSectionSpacing(16)
+        .onChange(of: session.reports.map(\.id)) { _, identifiers in
+            selected.formIntersection(identifiers)
+        }
         .searchable(text: $search, prompt: "Description, issue ID, or tag")
         .interactiveDismissDisabled(exporting)
         .disabled(exporting)
@@ -104,22 +133,27 @@ struct IssueInbox: View {
         ToolbarItem(placement: .topBarLeading) { filterMenu }
         ToolbarItem(placement: .confirmationAction) { Button("Done", action: onClose).disabled(exporting) }
         ToolbarItem(placement: .secondaryAction) {
+            NavigationLink {
+                CaptureButtonSettings(session: session, onClose: onClose)
+            } label: {
+                Label("Button appearance", systemImage: "slider.horizontal.3")
+            }
             Button("Capture IssueCapture screen", systemImage: "ladybug") {
                 session.captureReporter()
             }
         }
         ToolbarItemGroup(placement: .bottomBar) {
-            Menu {
-                handoffActions(session.reports.filter { selected.contains($0.id) })
-            } label: {
-                Label("Export (\(selected.count))", systemImage: "square.and.arrow.up")
+            Button("Copy for Codex", systemImage: "doc.on.doc") {
+                handoff(session.reports.filter { selected.contains($0.id) }, action: .text)
             }
             .disabled(selected.isEmpty || exporting)
             Spacer()
-            Button("Copy agent prompt", systemImage: "doc.on.doc") {
-                UIPasteboard.general.string = IssueMarkdown.agentPrompt
+            Menu {
+                handoffActions(session.reports.filter { selected.contains($0.id) })
+            } label: {
+                Label("Share (\(selected.count))", systemImage: "square.and.arrow.up")
             }
-            .labelStyle(.iconOnly)
+            .disabled(selected.isEmpty || exporting)
             Spacer()
             Button("Delete", systemImage: "trash", role: .destructive) { confirmDelete = true }
                 .labelStyle(.iconOnly)
@@ -170,6 +204,10 @@ struct IssueInbox: View {
                 }
             }
             Divider()
+            Button("Copy agent instructions", systemImage: "doc.on.doc") {
+                UIPasteboard.general.string = IssueMarkdown.agentPrompt
+                copyNotice = "Agent instructions copied."
+            }
             Button("Select visible (\(filtered.count))") { selected.formUnion(filtered.map(\.id)) }
             Button("Clear selection") { selected = [] }.disabled(selected.isEmpty)
         } label: {

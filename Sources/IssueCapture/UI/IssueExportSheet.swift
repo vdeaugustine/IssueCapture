@@ -5,6 +5,8 @@ struct IssueExportSheet: View {
     let onExport: (ExportImageOptions) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var options = ExportImageOptions()
+    @State private var showPerImageOptions = false
+    @State private var bulkQuality = ExportImageQuality.original
 
     var body: some View {
         NavigationStack {
@@ -19,32 +21,38 @@ struct IssueExportSheet: View {
                     Text("Cards combine each issue with its image. Text also stays available in full in Markdown and JSON.")
                 }
                 Section {
-                    ForEach(ExportImageQuality.allCases, id: \.self) { quality in
-                        Button("Set all images: \(quality.title)") {
-                            for report in reports {
-                                for kind in ExportImageKind.allCases {
-                                    options.qualities[ExportImageKey(reportID: report.id, kind: kind)] = quality
-                                }
+                    Picker("Image quality", selection: $bulkQuality) {
+                        ForEach(ExportImageQuality.allCases, id: \.self) { quality in
+                            Text(quality.title).tag(quality)
+                        }
+                    }
+                    .onChange(of: bulkQuality) { _, quality in
+                        for report in reports {
+                            for kind in ExportImageKind.allCases {
+                                options.qualities[ExportImageKey(reportID: report.id, kind: kind)] = quality
                             }
                         }
                     }
+                    Toggle("Customize individual images", isOn: $showPerImageOptions)
                 } header: { Text("Quick settings") } footer: {
                     Text("Full detail is the default. JPEG compression reduces fine detail; keep text and subtle rendering bugs at full detail. Pixel dimensions stay unchanged. Smaller PNGs are kept when JPEG would be larger. Originals on this device stay untouched.")
                 }
-                ForEach(reports) { report in
-                    Section {
-                        Text(report.description).font(.subheadline).lineLimit(3)
-                        ForEach(options.kinds(for: report), id: \.self) { kind in
-                            Picker(kind.title, selection: qualityBinding(report, kind: kind)) {
-                                ForEach(ExportImageQuality.allCases, id: \.self) { quality in
-                                    Text(quality.title).tag(quality)
+                if showPerImageOptions {
+                    ForEach(reports) { report in
+                        Section {
+                            Text(report.description).font(.subheadline).lineLimit(3)
+                            ForEach(options.kinds(for: report), id: \.self) { kind in
+                                Picker(kind.title, selection: qualityBinding(report, kind: kind)) {
+                                    ForEach(ExportImageQuality.allCases, id: \.self) { quality in
+                                        Text(quality.title).tag(quality)
+                                    }
                                 }
                             }
-                        }
-                    } header: { Text(report.displayID) }
+                        } header: { Text(report.displayID) }
+                    }
                 }
             }
-            .navigationTitle("Export options")
+            .navigationTitle("Export evidence")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }

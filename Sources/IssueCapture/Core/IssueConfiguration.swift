@@ -12,13 +12,17 @@ public struct IssueCaptureConfiguration {
     public var eventByteLimit: Int
     /// Whether the package displays its edge tab. Custom host controls remain available.
     public var showsCaptureTab: Bool
+    /// Initial appearance of the floating capture control.
+    public var captureButtonAppearance: CaptureButtonAppearance
     /// Optional build revision supplied by the application.
     public var sourceRevision: String?
 
     /// Creates a configuration; capture is off unless explicitly enabled by the host.
     public init(isEnabled: Bool = false, projectID: String = Bundle.main.bundleIdentifier ?? "app",
                 eventLimit: Int = 50, eventByteLimit: Int = 262_144, sourceRevision: String? = nil,
-                showsCaptureTab: Bool = true) {
+                showsCaptureTab: Bool = true,
+                captureButtonAppearance: CaptureButtonAppearance = .init()) {
+        self.captureButtonAppearance = captureButtonAppearance
         self.isEnabled = isEnabled
         self.projectID = projectID
         self.eventLimit = max(1, min(eventLimit, 1_000))

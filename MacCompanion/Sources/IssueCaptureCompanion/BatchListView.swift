@@ -42,8 +42,8 @@ struct BatchListView: View {
             }
         }
         .listStyle(.sidebar)
-        .navigationTitle("Candidate requests")
-        .overlay(alignment: .bottom) { footer }
+        .navigationTitle("1. Review issues")
+        .safeAreaInset(edge: .bottom, spacing: 0) { footer }
         .confirmationDialog(
             deletionTitle, isPresented: Binding(get: { pendingDeletion != nil },
                                                 set: { if !$0 { pendingDeletion = nil } }),
@@ -82,7 +82,7 @@ struct BatchListView: View {
                     .help(reason.detail)
             }
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 8)
     }
 
     @ViewBuilder private var footer: some View {

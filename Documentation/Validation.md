@@ -49,3 +49,17 @@ These unverified cases are not claimed as passed. Capture status explicitly desc
 - Runtime PDF pagination, image appearance, clipboard acceptance in Codex, and
   system share-sheet delivery have not been manually verified. Clipboard PDF
   support depends on the receiving app; Share PDF provides a file fallback.
+
+## 2026-09-23 — Capture and handoff UI polish
+
+- iOS demo and package dependency compiled for generic iOS Simulator with code
+  signing disabled using the IssueCaptureDemo scheme.
+- Mac companion compiled with `swift build --package-path MacCompanion`.
+- Simulator launch and screenshots confirmed adaptive neutral capture control
+  and the evidence-first editor. Automated text entry did not change the field,
+  so save/review navigation and interactive appearance controls are not claimed
+  as runtime verified. Latest compact preview adjustment was build-verified.
+- `git diff --check` passed; changed Swift source files stay below 500 lines.
+- Tests not run, per repository instructions. Physical-device checks, VoiceOver,
+  accessibility text sizes, color contrast for custom colors, and end-to-end
+  copy/PDF/ZIP delivery remain release validation items.

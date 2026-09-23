@@ -10,12 +10,12 @@ struct RequestPanelView: View {
         Group {
             if model.requests.isEmpty {
                 ContentUnavailableView("No prepared requests", systemImage: "doc.badge.gearshape",
-                                       description: Text("Choose a candidate request and select Prepare request."))
+                                       description: Text("Review an issue group, then choose Prepare request. Your prompt and evidence will appear here."))
             } else {
                 content
             }
         }
-        .navigationTitle("Prepared request")
+        .navigationTitle("3. Hand off")
     }
 
     private var content: some View {
@@ -34,8 +34,8 @@ struct RequestPanelView: View {
             if let handle = model.selectedRequest {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        summary(handle)
                         actions(handle)
+                        summary(handle)
                         attachments(handle)
                         issues(handle)
                         stateControls(handle)
@@ -77,6 +77,7 @@ struct RequestPanelView: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 10) {
                     Button("Copy prompt") { model.copyPrompt(handle) }
+                        .buttonStyle(.borderedProminent)
                     Button("Reveal folder") { model.revealFolder(handle) }
                     Spacer()
                     Button("Delete…", role: .destructive) { confirmsDeletion = true }
@@ -109,7 +110,7 @@ struct RequestPanelView: View {
         HStack(spacing: 8) {
             Image(systemName: "doc.on.doc.fill").font(.title2)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Drag files").font(.callout.weight(.medium))
+                Text("Drag prompt & evidence").font(.callout.weight(.medium))
                 Text("\(handle.dragURLs.count) file(s)").font(.caption2).foregroundStyle(.secondary)
             }
             Spacer()

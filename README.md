@@ -84,7 +84,7 @@ Environment flows to descendants. Read the reporter inside the content wrapped b
 
 ## Capture and export
 
-- Tap the purple tab to capture before opening the editor.
+- Tap the neutral capture button to capture before opening the editor.
 - Drag the tab vertically or to either edge.
 - Touch and hold it for the inbox and diagnostics.
 - From the reporter, choose "Capture IssueCapture screen" to file a report about the reporter itself.
@@ -114,3 +114,27 @@ The example includes a profile screen, sheet presentation, explicit action event
 - Physical-device behavior and complete acceptance coverage still require validation in a consuming app. See Documentation/Validation.md.
 
 See [Integration contract](Documentation/Integration.md), [architecture](Documentation/Architecture.md), and [export format](Documentation/ExportFormat.md).
+
+### Capture button appearance
+
+The floating button uses an adaptive neutral background and a 48-point touch target.
+Set host defaults with `captureButtonAppearance`:
+
+```swift
+IssueCaptureConfiguration(
+    isEnabled: true,
+    captureButtonAppearance: .init(
+        backgroundColor: .darkGray,
+        foregroundColor: .white,
+        diameter: 56
+    )
+)
+```
+
+Hold the button and choose **Button appearance** for a live preview, color pickers,
+and a size slider. Runtime changes last for the current host session; configuration
+sets defaults for future sessions. Displayed diameter is clamped to 44–80 points.
+
+Capture opens an evidence preview alongside the description. **Save & review for
+handoff** opens saved issues; **Save & return to app** resumes your app. Select
+reports to copy full text for Codex, share a PDF, or export an evidence ZIP.

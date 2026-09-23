@@ -1,8 +1,7 @@
 import SwiftUI
 import PhotosUI
 
-/// Compact issue form. Opens focused on the description so reporting starts
-/// with typing; the screenshot and secondary fields stay collapsed until asked for.
+/// Evidence-first report form with optional context and explicit save actions.
 struct IssueEditor: View {
     let session: CaptureSession
     let onFinish: () -> Void
@@ -15,6 +14,7 @@ struct IssueEditor: View {
     @State private var confirmReporterCapture = false
     @State private var showDetails = false
     @State private var showContext = false
+    @State private var savedForReview = false
     @FocusState private var focus: Field?
 
     private enum Field: Hashable { case description, expected, steps }
@@ -40,17 +40,18 @@ struct IssueEditor: View {
             detailsSection
             contextSection
         }
-        .listSectionSpacing(.compact)
+        .disabled(session.isBusy)
+        .listSectionSpacing(16)
+        .safeAreaInset(edge: .bottom) { saveBar }
+        .navigationDestination(isPresented: $savedForReview) {
+            IssueInbox(session: session, onClose: onFinish)
+                .navigationBarBackButtonHidden()
+        }
         .navigationTitle(report.description.isEmpty ? "Report an issue" : report.displayID)
         .navigationBarTitleDisplayMode(.inline)
         .scrollDismissesKeyboard(.interactively)
         .toolbar { toolbarContent }
         .interactiveDismissDisabled()
-        .task {
-            guard focus == nil, report.description.isEmpty else { return }
-            try? await Task.sleep(for: .milliseconds(450))
-            focus = .description
-        }
         .sheet(isPresented: $annotating) {
             if let image {
                 IssueAnnotationEditor(image: image, annotations: $report.annotations)
@@ -76,8 +77,10 @@ struct IssueEditor: View {
                 .focused($focus, equals: .description)
                 .submitLabel(.return)
                 .accessibilityLabel("Issue description")
+        } header: {
+            Text("What needs fixing?")
         } footer: {
-            Text("Required. Everything else is optional.")
+            Text("A short description is all you need. Evidence and context travel with your report.")
         }
     }
 
@@ -131,19 +134,6 @@ struct IssueEditor: View {
                 if hasChanges { confirmDiscard = true } else { onFinish() }
             }.disabled(session.isBusy || loadingPhoto)
         }
-        ToolbarItem(placement: .confirmationAction) {
-            Button(session.isBusy ? "Saving…" : "Save") { save() }
-                .fontWeight(.semibold)
-                .disabled(!canSave)
-        }
-        ToolbarItem(placement: .topBarLeading) {
-            NavigationLink {
-                IssueInbox(session: session, onClose: onFinish)
-            } label: {
-                Label("Issue box", systemImage: "tray.full")
-            }
-            .accessibilityHint("Opens saved issue reports")
-        }
         ToolbarItem(placement: .secondaryAction) {
             Button("Capture IssueCapture screen", systemImage: "ladybug") {
                 confirmReporterCapture = true
@@ -155,9 +145,28 @@ struct IssueEditor: View {
         }
     }
 
-    private func save() {
+    private var saveBar: some View {
+        VStack(spacing: 10) {
+            Button { save(review: true) } label: {
+                Label(session.isBusy ? "Saving…" : "Save & review for handoff", systemImage: "tray.and.arrow.down")
+                    .font(.headline).frame(maxWidth: .infinity).padding(.vertical, 7)
+            }
+            .buttonStyle(.borderedProminent).disabled(!canSave)
+            Button("Save & return to app") { save(review: false) }
+                .frame(minHeight: 44).disabled(!canSave)
+        }
+        .padding(.horizontal, 20).padding(.vertical, 12).background(.bar)
+    }
+
+    private func save(review: Bool) {
         focus = nil
-        Task { if await session.save(report, attachment: attachment) { onFinish() } }
+        Task {
+            if await session.save(report, attachment: attachment) {
+                session.draft = report
+                session.draftAttachment = attachment
+                if review { savedForReview = true } else { onFinish() }
+            }
+        }
     }
 
     private func loadPhoto(_ selection: PhotosPickerItem?) {

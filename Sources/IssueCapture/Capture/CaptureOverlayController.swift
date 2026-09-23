@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 final class CaptureOverlayController: UIViewController {
-    enum Destination { case editor, inbox, diagnostics }
+    enum Destination { case editor, inbox, diagnostics, appearance }
     private weak var session: CaptureSession?
     private let scene: UIWindowScene
     private var overlayWindow: PassthroughWindow?
@@ -49,13 +49,14 @@ final class CaptureOverlayController: UIViewController {
         position = CGPoint(x: stored?["x"] as? Double ?? 1, y: stored?["y"] as? Double ?? 0.5)
         button.configuration = .filled()
         button.configuration?.image = UIImage(systemName: "ladybug.fill")
-        button.configuration?.baseBackgroundColor = .systemIndigo
+        updateButtonAppearance()
         button.configuration?.cornerStyle = .capsule
         button.accessibilityLabel = "Record issue"
-        button.accessibilityHint = "Double tap to capture. Touch and hold for inbox and diagnostics."
+        button.accessibilityHint = "Double tap to capture. Touch and hold for inbox, appearance, and diagnostics."
         button.addAction(UIAction { [weak self] _ in self?.session?.capture() }, for: .touchUpInside)
         button.menu = UIMenu(children: [
             UIAction(title: "Issue inbox", image: UIImage(systemName: "tray.full")) { [weak self] _ in self?.present(.inbox) },
+            UIAction(title: "Button appearance", image: UIImage(systemName: "slider.horizontal.3")) { [weak self] _ in self?.present(.appearance) },
             UIAction(title: "Diagnostics", image: UIImage(systemName: "waveform.path")) { [weak self] _ in self?.present(.diagnostics) }
         ])
         button.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(drag(_:))))
@@ -66,19 +67,32 @@ final class CaptureOverlayController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         let safe = view.bounds.inset(by: view.safeAreaInsets).insetBy(dx: 6, dy: 6)
-        button.frame = CGRect(x: position.x < 0.5 ? safe.minX : max(safe.minX, safe.maxX - 48),
-                              y: safe.minY + max(0, safe.height - 48) * position.y, width: 48, height: 48)
+        let diameter = session?.buttonAppearance.resolvedDiameter ?? 48
+        button.frame = CGRect(x: position.x < 0.5 ? safe.minX : max(safe.minX, safe.maxX - diameter),
+                              y: safe.minY + max(0, safe.height - diameter) * position.y, width: diameter, height: diameter)
     }
 
     @objc private func drag(_ gesture: UIPanGestureRecognizer) {
         let point = gesture.location(in: view)
         let safe = view.bounds.inset(by: view.safeAreaInsets).insetBy(dx: 6, dy: 6)
         position.x = point.x < view.bounds.midX ? 0 : 1
-        position.y = min(1, max(0, (point.y - safe.minY - 24) / max(1, safe.height - 48)))
+        let diameter = session?.buttonAppearance.resolvedDiameter ?? 48
+        position.y = min(1, max(0, (point.y - safe.minY - diameter / 2) / max(1, safe.height - diameter)))
         view.setNeedsLayout()
         if gesture.state == .ended {
             UserDefaults.standard.set(["x": position.x, "y": position.y], forKey: positionKey)
         }
+    }
+
+    func updateButtonAppearance() {
+        guard let appearance = session?.buttonAppearance else { return }
+        button.configuration?.baseBackgroundColor = appearance.backgroundColor
+        button.configuration?.baseForegroundColor = appearance.foregroundColor
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOpacity = 0.14
+        button.layer.shadowRadius = 8
+        button.layer.shadowOffset = CGSize(width: 0, height: 3)
+        viewIfLoaded?.setNeedsLayout()
     }
 
     func present(_ destination: Destination) {
@@ -119,6 +133,9 @@ final class CaptureOverlayController: UIViewController {
         case .inbox:
             screenName = "IssueCapture inbox"
             typeName = "IssueCapture.IssueInbox"
+        case .appearance:
+            screenName = "IssueCapture appearance"
+            typeName = "IssueCapture.CaptureButtonSettings"
         case .diagnostics:
             screenName = "IssueCapture diagnostics"
             typeName = "IssueCapture.DiagnosticsView"

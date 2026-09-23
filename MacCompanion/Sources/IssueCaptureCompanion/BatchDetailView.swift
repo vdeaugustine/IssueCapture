@@ -18,7 +18,7 @@ struct BatchDetailView: View {
                 ContentUnavailableView("No candidate request selected", systemImage: "square.stack.3d.up")
             }
         }
-        .navigationTitle(model.selectedBatch?.title ?? "Issues")
+        .navigationTitle("2. Prepare request")
     }
 
     private func content(_ batch: CandidateBatch) -> some View {

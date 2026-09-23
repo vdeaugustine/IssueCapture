@@ -26,8 +26,10 @@ struct InboxView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button(action: openExport) {
-                    Label("Import Export", systemImage: "tray.and.arrow.down")
+                    Label("Import issues", systemImage: "tray.and.arrow.down")
                 }
+                .keyboardShortcut("o", modifiers: .command)
+                .help("Import an IssueCapture ZIP or export folder")
             }
             ToolbarItem(placement: .navigation) {
                 Button {

@@ -35,7 +35,7 @@ private struct DemoHomeContent: View {
                     Button("Inspect diagnostics") { capture.openDiagnostics() }
                 }
                 Section("Capture tab") {
-                    Text("Tap the purple bug to capture. Drag it to either edge. Touch and hold it for the inbox and diagnostics.")
+                    Text("Tap the capture button to report an issue. Drag it to either edge. Hold for saved issues, button appearance, and diagnostics.")
                     Text("The example intentionally shows a failed Save operation. Capture it and export the report.")
                 }
             }

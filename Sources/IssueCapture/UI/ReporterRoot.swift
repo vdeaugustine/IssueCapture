@@ -13,11 +13,13 @@ struct ReporterRoot: View {
                 }
             case .inbox:
                 IssueInbox(session: session, onClose: close)
+            case .appearance:
+                CaptureButtonSettings(session: session, onClose: close)
             case .diagnostics:
                 DiagnosticsView(session: session, onClose: close)
             }
         }
-        .tint(.indigo)
+        .tint(.accentColor)
         .alert("IssueCapture", isPresented: Binding(get: { session.errorMessage != nil },
                                                     set: { if !$0 { session.errorMessage = nil } })) {
             Button("OK") { session.errorMessage = nil }

@@ -5,6 +5,7 @@ import Observation
 final class CaptureSession {
     let identity = UUID()
     let configuration: IssueCaptureConfiguration
+    var buttonAppearance: CaptureButtonAppearance
     let recorder: IssueRecorder
     var screens: [IssueScreenContext] = []
     var reports: [IssueReport] = []
@@ -19,6 +20,7 @@ final class CaptureSession {
 
     init(configuration: IssueCaptureConfiguration) {
         self.configuration = configuration
+        buttonAppearance = configuration.captureButtonAppearance
         recorder = IssueRecorder(configuration: configuration)
     }
 
