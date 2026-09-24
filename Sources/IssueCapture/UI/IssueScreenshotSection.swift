@@ -7,6 +7,7 @@ import PhotosUI
 /// image; annotating is an explicit action that opens the full editor.
 struct IssueScreenshotSection: View {
     let screenshot: UIImage?
+    @Binding var includeScreenshot: Bool
     let attachment: UIImage?
     let annotations: [IssueAnnotation]
     let captureStatus: String
@@ -15,19 +16,22 @@ struct IssueScreenshotSection: View {
     let onAnnotate: () -> Void
     @State private var expanded = true
 
-    private var preview: UIImage? { screenshot ?? attachment }
+    private var preview: UIImage? { (includeScreenshot ? screenshot : nil) ?? attachment }
     private var annotationCount: Int { annotations.count }
 
     var body: some View {
         Section {
             DisclosureGroup(isExpanded: $expanded) {
+                if screenshot != nil {
+                    Toggle("Attach captured screenshot", isOn: $includeScreenshot)
+                }
                 if let preview {
                     imagePreview(preview, annotated: true)
                     Button(annotationCount == 0 ? "Annotate image" : "Edit annotations",
                            systemImage: "pencil.tip.crop.circle",
                            action: onAnnotate)
                 }
-                if let attachment, screenshot != nil {
+                if let attachment, includeScreenshot && screenshot != nil {
                     imagePreview(attachment, annotated: false)
                 }
                 PhotosPicker(selection: $photo, matching: .images) {
@@ -50,7 +54,7 @@ struct IssueScreenshotSection: View {
         HStack(spacing: 12) {
             thumbnail
             VStack(alignment: .leading, spacing: 1) {
-                Text(preview == nil ? "No image" : "Screenshot")
+                Text(preview == nil ? "No image attached" : "Image attached")
                 Text(subtitle).font(.caption).foregroundStyle(.secondary)
             }
             if loadingPhoto { Spacer(); ProgressView() }
@@ -61,8 +65,8 @@ struct IssueScreenshotSection: View {
 
     private var subtitle: String {
         if loadingPhoto { return "Loading image…" }
-        if preview == nil { return "Tap to attach one" }
-        return annotationCount == 0 ? "Captured automatically · ready to annotate" : "\(annotationCount) annotations"
+        if preview == nil { return screenshot == nil ? "Add an image if helpful" : "Screenshot available · toggle to attach" }
+        return annotationCount == 0 ? "Ready to annotate" : "\(annotationCount) annotations"
     }
 
     @ViewBuilder

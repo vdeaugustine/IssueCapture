@@ -5,7 +5,7 @@ enum IssueCardRenderer {
     static func render(report: IssueReport, image: UIImage?) throws -> Data {
         let width: CGFloat = 900
         let inset: CGFloat = 36
-        let title = "\(report.displayID)\n\(report.screens.last?.name ?? "Screen unavailable")"
+        let title = "\(report.displayID) · \(report.effectiveKind.title)\n\(report.effectiveTarget.title)"
         let body = "\(report.description)\n\nExpected: \(report.expectedBehavior.isEmpty ? "Not supplied" : report.expectedBehavior)\n\nSteps: \(report.reproductionNotes.isEmpty ? "Not supplied" : report.reproductionNotes)"
         let titleAttributes: [NSAttributedString.Key: Any] = [.font: UIFont.boldSystemFont(ofSize: 28), .foregroundColor: UIColor.black]
         let bodyAttributes: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 23), .foregroundColor: UIColor.darkGray]

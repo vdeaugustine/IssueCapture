@@ -66,6 +66,8 @@ struct IssueInbox: View {
                         Button { open(report) } label: {
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(report.displayID).font(.caption.monospaced()).foregroundStyle(.secondary)
+                                Text("\(report.effectiveKind.title) · \(report.effectiveTarget.title)")
+                                    .font(.caption).foregroundStyle(.secondary)
                                 Text(report.description).font(.headline).lineLimit(3).foregroundStyle(.primary)
                                 if let tags = report.tags, !tags.isEmpty {
                                     Text(tags.joined(separator: " · ")).font(.caption).foregroundStyle(.tint)

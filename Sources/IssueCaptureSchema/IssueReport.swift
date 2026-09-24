@@ -1,5 +1,23 @@
 import Foundation
 
+/// Reporter-selected work type.
+public enum IssueKind: String, Codable, CaseIterable, Sendable {
+    case bug
+    case featureRequest
+
+    /// Human-readable label.
+    public var title: String { self == .bug ? "Bug" : "Feature request" }
+}
+
+/// Product the request concerns.
+public enum IssueTarget: String, Codable, CaseIterable, Sendable {
+    case hostApp
+    case issueCapture
+
+    /// Human-readable label.
+    public var title: String { self == .hostApp ? "Host app" : "IssueCapture" }
+}
+
 /// Identity of one mounted, explicitly registered screen.
 public struct IssueScreenContext: Codable, Identifiable, Sendable, Equatable {
     /// Mounted instance identity.
@@ -102,6 +120,14 @@ public struct IssueReport: Codable, Identifiable, Sendable {
     public var hasAttachment = false
     /// Optional storage supports reports created before tags were introduced.
     public var tags: [String]? = nil
+    /// Nil decodes legacy reports as bugs.
+    public var kind: IssueKind? = nil
+    /// Nil decodes legacy reports as host-app reports.
+    public var target: IssueTarget? = nil
+    /// Work type, with legacy default.
+    public var effectiveKind: IssueKind { kind ?? .bug }
+    /// Target product, with legacy default.
+    public var effectiveTarget: IssueTarget { target ?? .hostApp }
     /// Short label for human-readable lists; UUID remains authoritative.
     public var displayID: String { "ISSUE-" + id.uuidString.prefix(8) }
 
@@ -112,7 +138,8 @@ public struct IssueReport: Codable, Identifiable, Sendable {
                 screens: [IssueScreenContext], contextStatus: String,
                 environment: [String: String], events: [IssueEvent], captureStatus: String,
                 annotations: [IssueAnnotation] = [], exportPreparedAt: [Date] = [],
-                hasScreenshot: Bool, hasAttachment: Bool = false, tags: [String]? = nil) {
+                hasScreenshot: Bool, hasAttachment: Bool = false, tags: [String]? = nil,
+                kind: IssueKind? = nil, target: IssueTarget? = nil) {
         self.schemaVersion = schemaVersion
         self.id = id
         self.projectID = projectID
@@ -131,5 +158,7 @@ public struct IssueReport: Codable, Identifiable, Sendable {
         self.hasScreenshot = hasScreenshot
         self.hasAttachment = hasAttachment
         self.tags = tags
+        self.kind = kind
+        self.target = target
     }
 }

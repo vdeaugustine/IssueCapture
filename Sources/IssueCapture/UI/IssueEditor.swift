@@ -19,7 +19,7 @@ struct IssueEditor: View {
 
     private enum Field: Hashable { case description, expected, steps }
 
-    private var image: UIImage? { session.draftImage ?? attachment }
+    private var image: UIImage? { (report.hasScreenshot ? session.draftImage : nil) ?? attachment }
 
     private var canSave: Bool {
         !report.description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -28,8 +28,10 @@ struct IssueEditor: View {
 
     var body: some View {
         Form {
+            classificationSection
             descriptionSection
             IssueScreenshotSection(screenshot: session.draftImage,
+                                   includeScreenshot: $report.hasScreenshot,
                                    attachment: attachment,
                                    annotations: report.annotations,
                                    captureStatus: report.captureStatus,
@@ -67,20 +69,41 @@ struct IssueEditor: View {
             Text("This starts a new report and replaces the current draft. Save it first if you want to keep it.")
         }
         .onChange(of: photo) { _, selection in loadPhoto(selection) }
+        .onChange(of: report.hasScreenshot) { _, included in
+            if !included { report.annotations = [] }
+        }
+    }
+
+    private var classificationSection: some View {
+        Section("Report") {
+            Picker("Type", selection: Binding(
+                get: { report.effectiveKind }, set: { report.kind = $0 })) {
+                ForEach(IssueKind.allCases, id: \.self) { kind in
+                    Text(kind.title).tag(kind)
+                }
+            }
+            Picker("For", selection: Binding(
+                get: { report.effectiveTarget }, set: { report.target = $0 })) {
+                ForEach(IssueTarget.allCases, id: \.self) { target in
+                    Text(target.title).tag(target)
+                }
+            }
+        }
     }
 
     private var descriptionSection: some View {
         Section {
-            TextField("What went wrong?", text: $report.description, axis: .vertical)
+            TextField(report.effectiveKind == .bug ? "What went wrong?" : "What would you like added?",
+                      text: $report.description, axis: .vertical)
                 .lineLimit(3...10)
                 .font(.body)
                 .focused($focus, equals: .description)
                 .submitLabel(.return)
                 .accessibilityLabel("Issue description")
         } header: {
-            Text("What needs fixing?")
+            Text(report.effectiveKind == .bug ? "What needs fixing?" : "What would improve it?")
         } footer: {
-            Text("A short description is all you need. Evidence and context travel with your report.")
+            Text("A short description is all you need. Images are optional.")
         }
     }
 
@@ -176,7 +199,7 @@ struct IssueEditor: View {
             do {
                 guard let data = try await selection?.loadTransferable(type: Data.self),
                       let image = UIImage(data: data) else { return }
-                if session.draftImage == nil { report.annotations = [] }
+                if !report.hasScreenshot { report.annotations = [] }
                 attachment = image
             } catch { session.errorMessage = error.localizedDescription }
         }
@@ -186,6 +209,8 @@ struct IssueEditor: View {
         guard let original = session.draft else { return true }
         return report.description != original.description || report.expectedBehavior != original.expectedBehavior
             || report.reproductionNotes != original.reproductionNotes
+            || report.effectiveKind != original.effectiveKind || report.effectiveTarget != original.effectiveTarget
+            || report.hasScreenshot != original.hasScreenshot
             || report.tags != original.tags
             || (try? JSONEncoder().encode(report.annotations)) != (try? JSONEncoder().encode(original.annotations))
             || attachment !== session.draftAttachment

@@ -16,7 +16,9 @@ The folder is shared as a UTF-8 ZIP32 archive with stored entries, CRC32 checksu
 
 `manifest.json` contains schemaVersion, exportedAt and issue UUID/report-path entries. JSON dates use Foundation's default Codable Date encoding: seconds since 2001-01-01T00:00:00Z. Markdown timestamps use ISO 8601. Readers must reject unsupported schema versions rather than silently reinterpreting them.
 
-Issue JSON contains capture/update dates, exact authored text, screen candidates, confidence status, environment, frozen events, annotation paths, asset-presence flags and export preparation history. Coordinates are fractions in 0...1 relative to the underlying image. Event sequence is monotonic within its recorder session.
+Issue JSON contains capture/update dates, exact authored text, optional report type and target, screen candidates, confidence status, environment, frozen events, annotation paths, asset-presence flags and export preparation history. Missing type and target in older reports mean Bug and Host app. Coordinates are fractions in 0...1 relative to the underlying image. Event sequence is monotonic within its recorder session.
+
+The screenshot is offered in the editor but omitted from saved reports by default. Turning on **Attach captured screenshot** adds it automatically. Manual image attachment is independent and optional. Reports can be text only.
 
 The short display ID is convenient for humans; use the full UUID for file pairing and external tracking. Type names and source locations are diagnostic hints tied to the captured build, not permanent routing identifiers.
 

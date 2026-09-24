@@ -72,7 +72,8 @@ final class CaptureSession {
         environment["captureSurface"] = captureSurface
         draft = IssueReport(projectID: configuration.projectID, capturedAt: capturedAt,
             screens: screens, contextStatus: contextStatus, environment: environment,
-            events: events, captureStatus: snapshot.1, hasScreenshot: snapshot.0 != nil)
+            events: events, captureStatus: snapshot.1, hasScreenshot: false,
+            kind: .bug, target: captureSurface == "issue-capture-reporter" ? .issueCapture : .hostApp)
         draftImage = snapshot.0
         draftAttachment = nil
     }
@@ -98,7 +99,7 @@ final class CaptureSession {
         report.updatedAt = Date()
         report.hasAttachment = attachment != nil
         do {
-            let screenshot = draftImage?.pngData()
+            let screenshot = report.hasScreenshot ? draftImage?.pngData() : nil
             let attachmentData = attachment?.pngData()
             try await ReportStore.shared.save(report, screenshot: screenshot, attachment: attachmentData)
             await refresh()

@@ -4,7 +4,7 @@ Status: Proposed v1 specification. APIs below describe intended behavior, not an
 
 ## Purpose
 
-Let a developer using an iPhone app capture an issue at the moment it occurs, including a screenshot, description, screen identity, and recent diagnostic events. Persist reports offline and export a batch for AI coding agents when the developer returns to their computer.
+Let a developer using an iPhone app capture a bug or feature request at the moment it occurs, with optional screenshot, description, screen identity, and recent diagnostic events. Persist reports offline and export a batch for AI coding agents when the developer returns to their computer.
 
 ## Product decisions
 
@@ -12,7 +12,7 @@ Let a developer using an iPhone app capture an issue at the moment it occurs, in
 - Proposed minimum deployment target: iOS 17; confirm during implementation planning.
 - No account, backend, companion app, or network connection required for v1.
 - A movable edge tab opens the reporter over the app's active scene.
-- The reporter can explicitly self-capture its current screen for dogfooding and improvement reports.
+- The reporter can explicitly self-capture its current screen and mark reports as concerning IssueCapture for dogfooding and improvement requests.
 - Capture the app and freeze context before presenting the reporting interface.
 - Require only an issue description; support keyboard dictation through the standard text input system.
 - Register screens through a protocol and modifier; record actions explicitly through scoped reporting context.
@@ -51,7 +51,7 @@ Let a developer using an iPhone app capture an issue at the moment it occurs, in
 2. Recorder reserves an issue UUID and freezes timestamp, active screen stack, metadata, and recent events.
 3. For a host capture, the capture service excludes its own UI and snapshots the relevant app scene before opening the editor or changing keyboard focus. An explicit reporter self-capture snapshots the visible reporter window instead.
 4. Editor presents the screenshot and focuses the description field.
-5. Developer describes the problem and optionally annotates the screenshot or adds expected behavior and reproduction notes.
+5. Developer selects Bug or Feature request and Host app or IssueCapture, describes the request, and optionally toggles on the captured screenshot, annotates it, attaches an image, or adds detail.
 6. Save durably persists the report and assets, then closes the reporter.
 7. Developer resumes testing. The capture flow does not navigate the host app.
 
