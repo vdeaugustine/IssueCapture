@@ -106,7 +106,7 @@ struct IssueScreenshotSection: View {
         Canvas { context, size in
             for annotation in annotations {
                 context.stroke(Path(AnnotationDrawing.path(annotation, size: size)),
-                               with: .color(.red),
+                               with: .color(AnnotationDrawing.color(annotation.ink ?? .red)),
                                style: StrokeStyle(lineWidth: 3, lineCap: .round))
             }
         }

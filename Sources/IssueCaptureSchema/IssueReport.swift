@@ -67,18 +67,23 @@ public struct IssuePoint: Codable, Sendable {
 public struct IssueAnnotation: Codable, Identifiable, Sendable {
     /// Supported markup primitives.
     public enum Kind: String, Codable, CaseIterable, Sendable { case arrow, rectangle, pen }
+    /// Supported annotation stroke colors.
+    public enum Ink: String, Codable, CaseIterable, Sendable { case red, orange, yellow, green, blue, purple }
     /// Stable annotation identity.
     public var id = UUID()
     /// Drawing tool.
     public var kind: Kind
     /// Normalized path coordinates.
     public var points: [IssuePoint]
+    /// Stroke color. Missing values from older reports render as red.
+    public var ink: Ink?
 
     /// Creates an annotation path.
-    public init(id: UUID = UUID(), kind: Kind, points: [IssuePoint]) {
+    public init(id: UUID = UUID(), kind: Kind, points: [IssuePoint], ink: Ink = .red) {
         self.id = id
         self.kind = kind
         self.points = points
+        self.ink = ink
     }
 }
 
