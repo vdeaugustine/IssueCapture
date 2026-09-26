@@ -72,7 +72,7 @@ final class CaptureSession {
         environment["captureSurface"] = captureSurface
         draft = IssueReport(projectID: configuration.projectID, capturedAt: capturedAt,
             screens: screens, contextStatus: contextStatus, environment: environment,
-            events: events, captureStatus: snapshot.1, hasScreenshot: false,
+            events: events, captureStatus: snapshot.1, hasScreenshot: snapshot.0 != nil,
             kind: .bug, target: captureSurface == "issue-capture-reporter" ? .issueCapture : .hostApp)
         draftImage = snapshot.0
         draftAttachment = nil

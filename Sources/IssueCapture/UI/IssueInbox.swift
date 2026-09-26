@@ -11,6 +11,9 @@ struct IssueInbox: View {
     @State private var exportOptions: ExportRoute?
     @State private var pendingExport: (reports: [IssueReport], options: ExportImageOptions)?
     @State private var confirmDelete = false
+    @State private var confirmExportDeletion = false
+    @State private var exportedReportIDs: Set<UUID> = []
+    @State private var sharedReportIDs: Set<UUID> = []
     @State private var editor: EditorRoute?
     @State private var share: ShareRoute?
     @State private var exporting = false
@@ -65,7 +68,14 @@ struct IssueInbox: View {
                         .accessibilityValue(selected.contains(report.id) ? "Selected" : "Not selected")
                         Button { open(report) } label: {
                             VStack(alignment: .leading, spacing: 5) {
-                                Text(report.displayID).font(.caption.monospaced()).foregroundStyle(.secondary)
+                                HStack(spacing: 6) {
+                                    Text(report.displayID).font(.caption.monospaced()).foregroundStyle(.secondary)
+                                    Image(systemName: report.hasScreenshot || report.hasAttachment ? "photo.fill" : "photo")
+                                        .font(.caption)
+                                        .foregroundStyle(report.hasScreenshot || report.hasAttachment ? Color.accentColor : Color.secondary)
+                                        .accessibilityLabel(report.hasScreenshot || report.hasAttachment
+                                                            ? "Image attached" : "No image attached")
+                                }
                                 Text("\(report.effectiveKind.title) · \(report.effectiveTarget.title)")
                                     .font(.caption).foregroundStyle(.secondary)
                                 Text(report.description).font(.headline).lineLimit(3).foregroundStyle(.primary)
@@ -81,6 +91,11 @@ struct IssueInbox: View {
                             Image(systemName: "square.and.arrow.up").frame(minWidth: 44, minHeight: 44)
                         }
                         .accessibilityLabel("Share \(report.displayID)")
+                    }
+                    .swipeActions(edge: .trailing) {
+                        Button("Delete", systemImage: "trash", role: .destructive) {
+                            delete([report.id])
+                        }
                     }
                 }
             }
@@ -120,13 +135,23 @@ struct IssueInbox: View {
                 exportOptions = nil
             }
         }
-        .sheet(item: $share) { route in ShareSheet(url: route.url) }
+        .sheet(item: $share, onDismiss: {
+            offerDeletion(for: sharedReportIDs)
+            sharedReportIDs = []
+        }) { route in ShareSheet(url: route.url) }
         .alert("Copied", isPresented: Binding(get: { copyNotice != nil },
                                              set: { if !$0 { copyNotice = nil } })) {
             Button("OK") { copyNotice = nil }
         } message: { Text(copyNotice ?? "") }
         .confirmationDialog("Permanently delete \(selected.count) reports?", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete reports", role: .destructive) { deleteSelected() }
+        }
+        .confirmationDialog("Delete the \(exportedReportIDs.count) exported \(exportedReportIDs.count == 1 ? "issue" : "issues")?",
+                            isPresented: $confirmExportDeletion, titleVisibility: .visible) {
+            Button("Delete exported issues", role: .destructive) { delete(exportedReportIDs) }
+            Button("Keep issues", role: .cancel) {}
+        } message: {
+            Text("The export was prepared. Delete these saved issues if you're finished with them.")
         }
     }
 
@@ -181,14 +206,16 @@ struct IssueInbox: View {
                 switch action {
                 case .text:
                     try await IssueHandoff.copyText(reports)
-                    copyNotice = "Issue text and complete metadata copied. Paste into Codex. Images are available through PDF or ZIP."
+                    offerDeletion(for: Set(reports.map(\.id)))
                 case .sharePDF:
-                    share = ShareRoute(url: try await IssueExporter.shared.exportPDF(reports))
+                    let url = try await IssueExporter.shared.exportPDF(reports)
+                    sharedReportIDs = Set(reports.map(\.id))
+                    share = ShareRoute(url: url)
                 case .copyPDF:
                     let url = try await IssueExporter.shared.exportPDF(reports)
                     defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
                     try IssueHandoff.copyPDF(url)
-                    copyNotice = "PDF copied with text, metadata, and images. If the destination does not accept PDF paste, use Share PDF to save or attach it."
+                    offerDeletion(for: Set(reports.map(\.id)))
                 }
                 await session.refresh()
             } catch { session.errorMessage = error.localizedDescription }
@@ -238,6 +265,7 @@ struct IssueInbox: View {
         Task {
             do {
                 let url = try await IssueExporter.shared.export(reports, options: options)
+                sharedReportIDs = Set(reports.map(\.id))
                 share = ShareRoute(url: url)
                 await session.refresh()
             } catch { session.errorMessage = error.localizedDescription }
@@ -246,10 +274,20 @@ struct IssueInbox: View {
     }
 
     private func deleteSelected() {
+        delete(selected)
+    }
+
+    private func offerDeletion(for identifiers: Set<UUID>) {
+        guard !identifiers.isEmpty else { return }
+        exportedReportIDs = identifiers
+        confirmExportDeletion = true
+    }
+
+    private func delete(_ identifiers: Set<UUID>) {
         Task {
             do {
-                for id in selected { try await ReportStore.shared.delete(id) }
-                selected = []
+                for id in identifiers { try await ReportStore.shared.delete(id) }
+                selected.subtract(identifiers)
                 await session.refresh()
             } catch { session.errorMessage = error.localizedDescription }
         }

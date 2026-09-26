@@ -18,7 +18,7 @@ The folder is shared as a UTF-8 ZIP32 archive with stored entries, CRC32 checksu
 
 Issue JSON contains capture/update dates, exact authored text, optional report type and target, screen candidates, confidence status, environment, frozen events, annotation paths, asset-presence flags and export preparation history. Missing type and target in older reports mean Bug and Host app. Coordinates are fractions in 0...1 relative to the underlying image. Event sequence is monotonic within its recorder session.
 
-The screenshot is offered in the editor but omitted from saved reports by default. Turning on **Attach captured screenshot** adds it automatically. Manual image attachment is independent and optional. Reports can be text only.
+When capture succeeds, **Attach captured screenshot** is on by default. Turn it off to omit the screenshot from the saved report. Manual image attachment is independent and optional. Reports can be text only.
 
 The short display ID is convenient for humans; use the full UUID for file pairing and external tracking. Type names and source locations are diagnostic hints tied to the captured build, not permanent routing identifiers.
 
@@ -54,7 +54,8 @@ choices for multiple issues:
   preserves all event/session/scene IDs, scoped screen context, annotation paths,
   and metadata. Text copy does not include image bytes.
 - **Share PDF** prepares one standalone PDF and opens the system share sheet.
-  Text and complete report JSON paginate without truncation. Each issue includes
+  Its first page introduces the issues and asks a coding agent to investigate and
+  address them by issue ID. Text and complete report JSON paginate without truncation. Each issue includes
   separate pages for its original screenshot, manual attachment, and annotated
   evidence when present. Images fit the page without changing stored originals.
 - **Copy PDF** places PDF data on the system clipboard. PDF paste depends on the
@@ -66,3 +67,5 @@ choices for multiple issues:
 Copy and PDF preparation are tracked as export preparation, never delivery or
 resolution. PDF exports use full evidence images and do not apply ZIP image-quality
 settings. The system clipboard may sync between devices according to OS settings.
+After a copy handoff, or after closing a PDF or ZIP share sheet, the inbox asks
+whether to delete the exported issues. Keeping them leaves the saved reports in place.

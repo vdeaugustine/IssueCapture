@@ -15,8 +15,16 @@ enum IssuePDFRenderer {
     static func write(_ evidence: [Evidence], to url: URL) throws {
         let renderer = UIGraphicsPDFRenderer(bounds: page)
         // Encode before rendering so serialization failures never produce partial handoffs.
-        let text = try evidence.map { try IssueHandoff.text([$0.report]) }
+        let text = try evidence.map { try IssueHandoff.reportText($0.report) }
         try renderer.writePDF(to: url) { context in
+            let introduction = """
+                IssueCapture issues
+
+                This PDF contains \(evidence.count) saved issue \(evidence.count == 1 ? "report" : "reports") and their available image evidence. Please investigate each issue in the host repository, implement the appropriate fixes or requested features, and report the outcome for each issue ID.
+
+                \(IssueMarkdown.agentPrompt)
+                """
+            drawText(introduction, context: context)
             for (index, item) in evidence.enumerated() {
                 drawText(text[index], context: context)
                 drawImage(item.screenshot, title: "\(item.report.displayID) · Original screenshot", context: context)

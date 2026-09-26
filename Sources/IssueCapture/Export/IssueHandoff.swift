@@ -5,11 +5,15 @@ import UniformTypeIdentifiers
 enum IssueHandoff {
     static func text(_ reports: [IssueReport]) throws -> String {
         try ([IssueMarkdown.agentPrompt] + reports.map { report in
-            let json = String(decoding: try ReportStore.encoder().encode(report), as: UTF8.self)
-            return IssueMarkdown.render(report, images: [:])
+            try reportText(report)
                 + "\nImages are included in PDF/ZIP exports; clipboard text contains metadata only.\n"
-                + "\n## Complete report metadata (JSON)\n\n```json\n\(json)\n```\n"
         }).joined(separator: "\n\n---\n\n")
+    }
+
+    static func reportText(_ report: IssueReport) throws -> String {
+        let json = String(decoding: try ReportStore.encoder().encode(report), as: UTF8.self)
+        return IssueMarkdown.render(report, images: [:])
+            + "\n## Complete report metadata (JSON)\n\n```json\n\(json)\n```\n"
     }
 
     @MainActor static func copyText(_ reports: [IssueReport]) async throws {
