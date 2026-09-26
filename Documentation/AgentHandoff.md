@@ -16,6 +16,10 @@ Read these package documents first:
 
 Use the source for the installed version to resolve API details. [Specification.md](Specification.md) is a design reference, not proof that every proposed capability is implemented. The included [example app](../Examples/IssueCaptureDemo) demonstrates a registration wrapper with descendant reporting content.
 
+For Unity consumers, use [UnityIntegration.md](UnityIntegration.md) for installation,
+C# registration, frame capture and development-build gating in place of the SwiftUI
+host/modifier steps below. Keep the same coverage, privacy and verification duties.
+
 ## Step 1: inspect before changing
 
 Locate:
@@ -27,7 +31,7 @@ Locate:
 - Host Debug, production Release, and any approved internal-testing configurations.
 - Repository rules for builds, tests, signing, and changes to AGENTS.md.
 
-The current package requires iOS 17+ and a Swift 6 toolchain; it compiles in Swift 5 language mode. If the app is incompatible, report that concrete mismatch before changing deployment targets or migrating its toolchain.
+The current package requires iOS 15+ and a Swift 6 toolchain; it compiles in Swift 5 language mode. If the app is incompatible, report that concrete mismatch before changing deployment targets or migrating its toolchain.
 
 If integration already exists, inspect and complete it. Do not install duplicate hosts or duplicate events.
 

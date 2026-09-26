@@ -9,7 +9,7 @@ struct IssueExportSheet: View {
     @State private var bulkQuality = ExportImageQuality.original
 
     var body: some View {
-        NavigationStack {
+        ReporterNavigation {
             Form {
                 Section {
                     Label("\(reports.count) issues ready to export", systemImage: "archivebox")
@@ -26,7 +26,7 @@ struct IssueExportSheet: View {
                             Text(quality.title).tag(quality)
                         }
                     }
-                    .onChange(of: bulkQuality) { _, quality in
+                    .onChange(of: bulkQuality) { quality in
                         for report in reports {
                             for kind in ExportImageKind.allCases {
                                 options.qualities[ExportImageKey(reportID: report.id, kind: kind)] = quality

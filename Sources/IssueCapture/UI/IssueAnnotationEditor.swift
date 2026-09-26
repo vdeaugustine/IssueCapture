@@ -10,7 +10,7 @@ struct IssueAnnotationEditor: View {
     @State private var redoHistory: [[IssueAnnotation]] = []
 
     var body: some View {
-        NavigationStack {
+        ReporterNavigation {
             VStack(spacing: 0) {
                 annotationToolbar
                 ScrollView {

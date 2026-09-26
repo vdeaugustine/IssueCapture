@@ -6,14 +6,16 @@ let package = Package(
     // IssueCaptureSchema is Foundation-only and supports macOS readers such as
     // the Mac companion. The IssueCapture target itself remains an iOS UIKit
     // library and is not buildable for macOS.
-    platforms: [.iOS(.v17), .macOS(.v14)],
+    platforms: [.iOS(.v15), .macOS(.v14)],
     products: [
         .library(name: "IssueCapture", targets: ["IssueCapture"]),
-        .library(name: "IssueCaptureSchema", targets: ["IssueCaptureSchema"])
+        .library(name: "IssueCaptureSchema", targets: ["IssueCaptureSchema"]),
+        .library(name: "IssueCaptureUnity", targets: ["IssueCaptureUnity"])
     ],
     targets: [
         .target(name: "IssueCaptureSchema"),
-        .target(name: "IssueCapture", dependencies: ["IssueCaptureSchema"])
+        .target(name: "IssueCapture", dependencies: ["IssueCaptureSchema"]),
+        .target(name: "IssueCaptureUnity", dependencies: ["IssueCapture"])
     ],
     swiftLanguageModes: [.v5]
 )

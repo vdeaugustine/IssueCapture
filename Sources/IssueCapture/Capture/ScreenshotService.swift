@@ -16,6 +16,12 @@ enum ScreenshotService {
         return (image, status)
     }
 
+    private static func isLandscape(_ window: UIWindow?) -> Bool {
+        if let orientation = window?.windowScene?.interfaceOrientation { return orientation.isLandscape }
+        guard let window else { return false }
+        return window.bounds.width > window.bounds.height
+    }
+
     static func environment(window: UIWindow?, configuration: IssueCaptureConfiguration) -> [String: String] {
         let bundle = Bundle.main
         let device = UIDevice.current
@@ -26,7 +32,7 @@ enum ScreenshotService {
             "deviceModel": device.model,
             "locale": Locale.current.identifier,
             "timezone": TimeZone.current.identifier,
-            "orientation": window?.windowScene?.interfaceOrientation.isLandscape == true ? "landscape" : "portrait",
+            "orientation": isLandscape(window) ? "landscape" : "portrait",
             "appearance": window?.traitCollection.userInterfaceStyle == .dark ? "dark" : "light",
             "dynamicType": window?.traitCollection.preferredContentSizeCategory.rawValue ?? "unavailable"
         ]

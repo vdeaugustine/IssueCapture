@@ -24,9 +24,9 @@ public struct IssueScreenContext: Codable, Identifiable, Sendable, Equatable {
     public let id: UUID
     /// Optional identity stable across source renames.
     public let stableID: String?
-    /// Display label supplied by the screen protocol.
+    /// Display label supplied by explicit screen registration.
     public let name: String
-    /// Qualified Swift type name.
+    /// Qualified source type name (Swift or an explicitly supplied C# type).
     public let typeName: String
     /// Registration source file.
     public let file: String

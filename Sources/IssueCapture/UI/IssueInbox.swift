@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct IssueInbox: View {
-    let session: CaptureSession
+    @ObservedObject var session: CaptureSession
     let onClose: () -> Void
     @State private var selected: Set<UUID> = []
     @State private var search = ""
@@ -52,7 +52,7 @@ struct IssueInbox: View {
             }
             Section("\(selected.count) selected · \(filtered.count) visible") {
                 if filtered.isEmpty {
-                    ContentUnavailableView(session.reports.isEmpty ? "Your next fix starts here" : "No matching reports",
+                    ReporterEmptyState(session.reports.isEmpty ? "Your next fix starts here" : "No matching reports",
                         systemImage: session.reports.isEmpty ? "viewfinder" : "magnifyingglass",
                         description: Text(session.reports.isEmpty ? "Return to your app and tap the floating capture button." : "Try another search or clear your filters."))
                     if filtersActive || !search.isEmpty {
@@ -93,7 +93,7 @@ struct IssueInbox: View {
                         .accessibilityLabel("Share \(report.displayID)")
                     }
                     .swipeActions(edge: .trailing) {
-                        Button("Delete", systemImage: "trash", role: .destructive) {
+                        ReporterLabelButton("Delete", systemImage: "trash", role: .destructive) {
                             delete([report.id])
                         }
                     }
@@ -105,8 +105,8 @@ struct IssueInbox: View {
             }
         }
         .navigationTitle("Saved issues")
-        .listSectionSpacing(16)
-        .onChange(of: session.reports.map(\.id)) { _, identifiers in
+        .reporterSectionSpacing()
+        .onChange(of: session.reports.map(\.id)) { identifiers in
             selected.formIntersection(identifiers)
         }
         .searchable(text: $search, prompt: "Description, issue ID, or tag")
@@ -116,7 +116,7 @@ struct IssueInbox: View {
         .toolbar { toolbarContent }
         .task { await session.refresh() }
         .sheet(item: $editor) { route in
-            NavigationStack {
+            ReporterNavigation {
                 IssueEditor(session: session, onFinish: { editor = nil }, report: route.report, attachment: session.draftAttachment)
             }
             .alert("Could not save", isPresented: Binding(get: { session.errorMessage != nil },
@@ -157,20 +157,20 @@ struct IssueInbox: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) { filterMenu }
+        ToolbarItem(placement: .navigationBarLeading) { filterMenu }
         ToolbarItem(placement: .confirmationAction) { Button("Done", action: onClose).disabled(exporting) }
-        ToolbarItem(placement: .secondaryAction) {
+        ToolbarItem(placement: .reporterSecondaryAction) {
             NavigationLink {
                 CaptureButtonSettings(session: session, onClose: onClose)
             } label: {
                 Label("Button appearance", systemImage: "slider.horizontal.3")
             }
-            Button("Capture IssueCapture screen", systemImage: "ladybug") {
+            ReporterLabelButton("Capture IssueCapture screen", systemImage: "ladybug") {
                 session.captureReporter()
             }
         }
         ToolbarItemGroup(placement: .bottomBar) {
-            Button("Copy for Codex", systemImage: "doc.on.doc") {
+            ReporterLabelButton("Copy for Codex", systemImage: "doc.on.doc") {
                 handoff(session.reports.filter { selected.contains($0.id) }, action: .text)
             }
             .disabled(selected.isEmpty || exporting)
@@ -182,7 +182,7 @@ struct IssueInbox: View {
             }
             .disabled(selected.isEmpty || exporting)
             Spacer()
-            Button("Delete", systemImage: "trash", role: .destructive) { confirmDelete = true }
+            ReporterLabelButton("Delete", systemImage: "trash", role: .destructive) { confirmDelete = true }
                 .labelStyle(.iconOnly)
                 .disabled(selected.isEmpty || exporting)
         }
@@ -190,10 +190,10 @@ struct IssueInbox: View {
 
     @ViewBuilder
     private func handoffActions(_ reports: [IssueReport]) -> some View {
-        Button("Copy for Codex", systemImage: "doc.on.doc") { handoff(reports, action: .text) }
-        Button("Share PDF", systemImage: "doc.richtext") { handoff(reports, action: .sharePDF) }
-        Button("Copy PDF", systemImage: "doc.on.clipboard") { handoff(reports, action: .copyPDF) }
-        Button("Export ZIP…", systemImage: "archivebox") { exportOptions = ExportRoute(reports: reports) }
+        ReporterLabelButton("Copy for Codex", systemImage: "doc.on.doc") { handoff(reports, action: .text) }
+        ReporterLabelButton("Share PDF", systemImage: "doc.richtext") { handoff(reports, action: .sharePDF) }
+        ReporterLabelButton("Copy PDF", systemImage: "doc.on.clipboard") { handoff(reports, action: .copyPDF) }
+        ReporterLabelButton("Export ZIP…", systemImage: "archivebox") { exportOptions = ExportRoute(reports: reports) }
     }
 
     private enum HandoffAction { case text, sharePDF, copyPDF }
@@ -233,7 +233,7 @@ struct IssueInbox: View {
                 }
             }
             Divider()
-            Button("Copy agent instructions", systemImage: "doc.on.doc") {
+            ReporterLabelButton("Copy agent instructions", systemImage: "doc.on.doc") {
                 UIPasteboard.general.string = IssueMarkdown.agentPrompt
                 copyNotice = "Agent instructions copied."
             }

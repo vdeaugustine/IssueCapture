@@ -2,6 +2,10 @@
 
 For the complete setup assignment and completion criteria, start with [AgentHandoff.md](AgentHandoff.md). This document defines the underlying instrumentation contracts.
 
+Unity iOS consumers follow [UnityIntegration.md](UnityIntegration.md) for the UPM
+package, explicit C# surfaces, native report bridge, and generated-project setup.
+The SwiftUI adoption steps below remain valid for SwiftUI applications.
+
 ## Required adoption work
 
 1. Add the local or remote package dependency and link the IssueCapture library product.

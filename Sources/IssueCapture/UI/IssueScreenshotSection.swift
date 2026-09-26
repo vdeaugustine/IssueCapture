@@ -1,5 +1,4 @@
 import SwiftUI
-import PhotosUI
 
 /// Expanded evidence preview for the issue editor.
 ///
@@ -11,7 +10,7 @@ struct IssueScreenshotSection: View {
     let attachment: UIImage?
     let annotations: [IssueAnnotation]
     let captureStatus: String
-    @Binding var photo: PhotosPickerItem?
+    let onAttach: () -> Void
     let loadingPhoto: Bool
     let onAnnotate: () -> Void
     @State private var expanded = true
@@ -27,14 +26,14 @@ struct IssueScreenshotSection: View {
                 }
                 if let preview {
                     imagePreview(preview, annotated: true)
-                    Button(annotationCount == 0 ? "Annotate image" : "Edit annotations",
+                    ReporterLabelButton(annotationCount == 0 ? "Annotate image" : "Edit annotations",
                            systemImage: "pencil.tip.crop.circle",
                            action: onAnnotate)
                 }
                 if let attachment, includeScreenshot && screenshot != nil {
                     imagePreview(attachment, annotated: false)
                 }
-                PhotosPicker(selection: $photo, matching: .images) {
+                Button(action: onAttach) {
                     Label(attachment == nil ? "Attach image" : "Replace attachment",
                           systemImage: "photo.badge.plus")
                 }

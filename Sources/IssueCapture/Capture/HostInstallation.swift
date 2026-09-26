@@ -20,11 +20,11 @@ private struct CaptureHostModifier: ViewModifier {
 }
 
 private struct EnabledCaptureHost<Content: View>: View {
-    @State private var session: CaptureSession
+    @StateObject private var session: CaptureSession
     let content: Content
 
     init(configuration: IssueCaptureConfiguration, @ViewBuilder content: () -> Content) {
-        _session = State(initialValue: CaptureSession(configuration: configuration))
+        _session = StateObject(wrappedValue: CaptureSession(configuration: configuration))
         self.content = content()
     }
 

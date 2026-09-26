@@ -68,8 +68,8 @@ private struct ScreenRegistration: ViewModifier {
             .environment(\.issueReporter, IssueReporter(recorder: session?.recorder, screen: context))
             .onAppear { appeared = true; update() }
             .onDisappear { appeared = false; session?.unregister(instanceID) }
-            .onChange(of: isActive) { _, _ in update() }
-            .onChange(of: session?.identity) { _, _ in update() }
+            .onChange(of: isActive) { _ in update() }
+            .onChange(of: session?.identity) { _ in update() }
     }
 
     private func update() {

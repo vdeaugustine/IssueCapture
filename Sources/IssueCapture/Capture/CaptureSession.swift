@@ -1,22 +1,23 @@
 import SwiftUI
-import Observation
+import Combine
 
-@MainActor @Observable
-final class CaptureSession {
+@MainActor
+final class CaptureSession: ObservableObject {
     let identity = UUID()
     let configuration: IssueCaptureConfiguration
-    var buttonAppearance: CaptureButtonAppearance
+    @Published var buttonAppearance: CaptureButtonAppearance
     let recorder: IssueRecorder
-    var screens: [IssueScreenContext] = []
-    var reports: [IssueReport] = []
-    var errorMessage: String?
-    var draft: IssueReport?
-    var draftImage: UIImage?
-    var draftAttachment: UIImage?
-    var isBusy = false
-    var isPresenting = false
-    @ObservationIgnored weak var hostWindow: UIWindow?
-    @ObservationIgnored var overlay: CaptureOverlayController?
+    @Published var screens: [IssueScreenContext] = []
+    @Published var reports: [IssueReport] = []
+    @Published var errorMessage: String?
+    @Published var draft: IssueReport?
+    @Published var draftImage: UIImage?
+    @Published var draftAttachment: UIImage?
+    @Published var isBusy = false
+    @Published var isPresenting = false
+    weak var hostWindow: UIWindow?
+    var overlay: CaptureOverlayController?
+    private var externalCapturePending = false
 
     init(configuration: IssueCaptureConfiguration) {
         self.configuration = configuration
@@ -38,15 +39,47 @@ final class CaptureSession {
                         file: context.file, line: context.line)
     }
 
+    private var activeContextStatus: String {
+        let candidates = screens.filter { screen in !screens.contains { $0.parentID == screen.id } }
+        return candidates.count == 1 ? IssueContextStatus.accepted
+            : candidates.isEmpty ? IssueContextStatus.missing : IssueContextStatus.ambiguous
+    }
+
     func capture() {
         guard !isPresenting, !isBusy else { return }
         let events = recorder.snapshot()
-        let candidates = screens.filter { screen in !screens.contains { $0.parentID == screen.id } }
-        let contextStatus = candidates.count == 1 ? IssueContextStatus.accepted
-            : candidates.isEmpty ? IssueContextStatus.missing : IssueContextStatus.ambiguous
-        prepareDraft(window: hostWindow, screens: screens, contextStatus: contextStatus,
+        prepareDraft(window: hostWindow, screens: screens, contextStatus: activeContextStatus,
                      events: events, captureSurface: "host-app")
         overlay?.present(.editor)
+    }
+
+    func beginExternalCapture() -> Bool {
+        guard !isPresenting, !isBusy, overlay != nil else { return false }
+        prepareDraft(window: hostWindow, screens: screens, contextStatus: activeContextStatus,
+                     events: recorder.snapshot(), captureSurface: "unity-frame",
+                     suppliedSnapshot: (nil, "pending Unity end-of-frame capture"))
+        externalCapturePending = true
+        isBusy = true
+        return true
+    }
+
+    func finishExternalCapture(image: UIImage?, status: String) {
+        guard externalCapturePending else { return }
+        externalCapturePending = false
+        isBusy = false
+        draftImage = image
+        draft?.hasScreenshot = image != nil
+        draft?.captureStatus = status
+        overlay?.present(.editor)
+    }
+
+    func cancelExternalCapture() {
+        guard externalCapturePending else { return }
+        externalCapturePending = false
+        isBusy = false
+        draft = nil
+        draftImage = nil
+        recorder.setSuspended(false)
     }
 
     /// Captures the currently visible IssueCapture reporter instead of the host app.
@@ -64,10 +97,10 @@ final class CaptureSession {
 
     private func prepareDraft(window: UIWindow?, screens: [IssueScreenContext],
                               contextStatus: String, events: [IssueEvent],
-                              captureSurface: String) {
+                              captureSurface: String, suppliedSnapshot: (UIImage?, String)? = nil) {
         let capturedAt = Date()
         recorder.setSuspended(true)
-        let snapshot = ScreenshotService.capture(window: window)
+        let snapshot = suppliedSnapshot ?? ScreenshotService.capture(window: window)
         var environment = ScreenshotService.environment(window: window, configuration: configuration)
         environment["captureSurface"] = captureSurface
         draft = IssueReport(projectID: configuration.projectID, capturedAt: capturedAt,

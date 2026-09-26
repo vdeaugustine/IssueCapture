@@ -45,3 +45,21 @@ Reports are never automatically evicted. Export preparation timestamps are appen
 ## Build configuration
 
 Default is disabled. Host compilation conditions select explicit enablement. The package intentionally does not inspect its own DEBUG flag. Swift 5 language mode is selected with a Swift 6 manifest/toolchain; public recorder values are Sendable and UI orchestration is main-actor isolated.
+
+## Unity and UIKit hosts
+
+`IssueCaptureNativeHost` exposes explicit window installation, context activation,
+scoped reporters and engine-frame capture without a SwiftUI root. The
+`IssueCaptureUnity` product implements bounded C ABI commands and a per-host
+surface registry. C# reporters send immutable context plus a session token, so
+async results remain attributable after navigation and cannot cross reinitialization.
+A parent must be active for a registered descendant to be a capture candidate.
+
+The Unity postprocessor snapshots the installed Swift sources into a fresh Xcode
+export and links the product to UnityFramework only for Development Builds. It
+uses Unity's explicit window accessor and end-of-frame image API. The reporter
+uses the same persistence/export path for supplied engine frames and UIKit captures.
+See [UnityIntegration.md](UnityIntegration.md) for limits, lifecycle and build policy.
+
+Session observation uses Combine for iOS 15 support; compatibility views retain
+modern navigation/layout on newer systems and explicit fallbacks on iOS 15.

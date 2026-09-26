@@ -4,7 +4,7 @@ import SwiftUI
 final class CaptureOverlayController: UIViewController {
     enum Destination { case editor, inbox, diagnostics, appearance }
     private weak var session: CaptureSession?
-    private let scene: UIWindowScene
+    private let scene: UIWindowScene?
     private var overlayWindow: PassthroughWindow?
     private weak var reporterController: UIHostingController<ReporterRoot>?
     private var destination: Destination = .editor
@@ -12,10 +12,10 @@ final class CaptureOverlayController: UIViewController {
     private var previousAccessibilityHidden: Bool?
     private let button = UIButton(type: .system)
     private var position = CGPoint(x: 1, y: 0.5)
-    private var positionKey: String { "IssueCapture.tab." + scene.session.persistentIdentifier }
+    private var positionKey: String { "IssueCapture.tab." + (scene?.session.persistentIdentifier ?? "native-app-window") }
     private let reporterScreenID = UUID()
 
-    init(session: CaptureSession, scene: UIWindowScene) {
+    init(session: CaptureSession, scene: UIWindowScene?) {
         self.session = session
         self.scene = scene
         super.init(nibName: nil, bundle: nil)
@@ -23,7 +23,8 @@ final class CaptureOverlayController: UIViewController {
     required init?(coder: NSCoder) { fatalError("Use init(session:scene:)") }
 
     func attach() {
-        let window = PassthroughWindow(windowScene: scene)
+        let window = scene.map { PassthroughWindow(windowScene: $0) }
+            ?? PassthroughWindow(frame: session?.hostWindow?.bounds ?? UIScreen.main.bounds)
         window.windowLevel = .alert + 1
         window.rootViewController = self
         window.backgroundColor = .clear
@@ -100,7 +101,7 @@ final class CaptureOverlayController: UIViewController {
         self.destination = destination
         session.isPresenting = true
         session.recorder.setSuspended(true)
-        previousKeyWindow = scene.windows.first(where: \.isKeyWindow)
+        previousKeyWindow = scene?.windows.first(where: \.isKeyWindow) ?? session.hostWindow
         previousAccessibilityHidden = session.hostWindow?.accessibilityElementsHidden ?? false
         session.hostWindow?.accessibilityElementsHidden = true
         overlayWindow?.isModal = true

@@ -63,3 +63,10 @@ These unverified cases are not claimed as passed. Capture status explicitly desc
 - Tests not run, per repository instructions. Physical-device checks, VoiceOver,
   accessibility text sizes, color contrast for custom colors, and end-to-end
   copy/PDF/ZIP delivery remain release validation items.
+
+## 2026-09-25 — Unity iOS / iOS 15 support
+
+See [UnityValidation.md](UnityValidation.md) for package and native builds, Unity
+C# compilation, production import-table checks, and simulator capture/edit/ZIP
+verification. Full Unity IL2CPP/device and iOS 15 runtime acceptance remain open;
+no test suites were run.

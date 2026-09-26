@@ -1,13 +1,12 @@
 import SwiftUI
-import PhotosUI
 
 /// Evidence-first report form with optional context and explicit save actions.
 struct IssueEditor: View {
-    let session: CaptureSession
+    @ObservedObject var session: CaptureSession
     let onFinish: () -> Void
     @State var report: IssueReport
     @State var attachment: UIImage?
-    @State private var photo: PhotosPickerItem?
+    @State private var pickingPhoto = false
     @State private var annotating = false
     @State private var loadingPhoto = false
     @State private var confirmDiscard = false
@@ -35,7 +34,7 @@ struct IssueEditor: View {
                                    attachment: attachment,
                                    annotations: report.annotations,
                                    captureStatus: report.captureStatus,
-                                   photo: $photo,
+                                   onAttach: { pickingPhoto = true },
                                    loadingPhoto: loadingPhoto,
                                    onAnnotate: { annotating = true })
             IssueTagPicker(tags: $report.tags)
@@ -43,15 +42,15 @@ struct IssueEditor: View {
             contextSection
         }
         .disabled(session.isBusy)
-        .listSectionSpacing(16)
+        .reporterSectionSpacing()
         .safeAreaInset(edge: .bottom) { saveBar }
-        .navigationDestination(isPresented: $savedForReview) {
+        .reporterDestination(isPresented: $savedForReview) {
             IssueInbox(session: session, onClose: onFinish)
                 .navigationBarBackButtonHidden()
         }
         .navigationTitle(report.description.isEmpty ? "Report an issue" : report.displayID)
         .navigationBarTitleDisplayMode(.inline)
-        .scrollDismissesKeyboard(.interactively)
+        .reporterKeyboardDismissal()
         .toolbar { toolbarContent }
         .interactiveDismissDisabled()
         .sheet(isPresented: $annotating) {
@@ -68,8 +67,13 @@ struct IssueEditor: View {
         } message: {
             Text("This starts a new report and replaces the current draft. Save it first if you want to keep it.")
         }
-        .onChange(of: photo) { _, selection in loadPhoto(selection) }
-        .onChange(of: report.hasScreenshot) { _, included in
+        .sheet(isPresented: $pickingPhoto) {
+            ReporterPhotoPicker(loading: $loadingPhoto) { image in
+                if !report.hasScreenshot { report.annotations = [] }
+                attachment = image
+            } onError: { session.errorMessage = $0 }
+        }
+        .onChange(of: report.hasScreenshot) { included in
             if !included { report.annotations = [] }
         }
     }
@@ -93,9 +97,8 @@ struct IssueEditor: View {
 
     private var descriptionSection: some View {
         Section {
-            TextField(report.effectiveKind == .bug ? "What went wrong?" : "What would you like added?",
-                      text: $report.description, axis: .vertical)
-                .lineLimit(3...10)
+            ReporterTextInput(report.effectiveKind == .bug ? "What went wrong?" : "What would you like added?",
+                      text: $report.description, lines: 3...10)
                 .font(.body)
                 .focused($focus, equals: .description)
                 .submitLabel(.return)
@@ -110,11 +113,9 @@ struct IssueEditor: View {
     private var detailsSection: some View {
         Section {
             DisclosureGroup(isExpanded: $showDetails) {
-                TextField("Expected behavior", text: $report.expectedBehavior, axis: .vertical)
-                    .lineLimit(1...6)
+                ReporterTextInput("Expected behavior", text: $report.expectedBehavior, lines: 1...6)
                     .focused($focus, equals: .expected)
-                TextField("Steps to reproduce", text: $report.reproductionNotes, axis: .vertical)
-                    .lineLimit(1...6)
+                ReporterTextInput("Steps to reproduce", text: $report.reproductionNotes, lines: 1...6)
                     .focused($focus, equals: .steps)
             } label: {
                 IssueRowLabel(title: "More detail",
@@ -157,8 +158,8 @@ struct IssueEditor: View {
                 if hasChanges { confirmDiscard = true } else { onFinish() }
             }.disabled(session.isBusy || loadingPhoto)
         }
-        ToolbarItem(placement: .secondaryAction) {
-            Button("Capture IssueCapture screen", systemImage: "ladybug") {
+        ToolbarItem(placement: .reporterSecondaryAction) {
+            ReporterLabelButton("Capture IssueCapture screen", systemImage: "ladybug") {
                 confirmReporterCapture = true
             }
         }
@@ -189,19 +190,6 @@ struct IssueEditor: View {
                 session.draftAttachment = attachment
                 if review { savedForReview = true } else { onFinish() }
             }
-        }
-    }
-
-    private func loadPhoto(_ selection: PhotosPickerItem?) {
-        loadingPhoto = true
-        Task {
-            defer { loadingPhoto = false }
-            do {
-                guard let data = try await selection?.loadTransferable(type: Data.self),
-                      let image = UIImage(data: data) else { return }
-                if !report.hasScreenshot { report.annotations = [] }
-                attachment = image
-            } catch { session.errorMessage = error.localizedDescription }
         }
     }
 

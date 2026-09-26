@@ -1,8 +1,19 @@
 # IssueCapture
 
-Embed an offline issue reporter in a SwiftUI iPhone app. Tap a movable edge tab, describe the problem, annotate its screenshot, and export a batch for a coding agent.
+Embed an offline issue reporter in a SwiftUI iPhone app or Unity iOS game. Tap a movable edge tab, describe the problem, annotate its screenshot, and export a batch for a coding agent.
 
-Requires iOS 17+ and a Swift 6 toolchain. Package sources compile in Swift 5 language mode. No third-party dependencies, account, or backend.
+Requires iOS 15+ and a Swift 6 toolchain. Package sources compile in Swift 5 language mode. No third-party dependencies, account, or backend.
+
+## Unity iOS
+
+Unity 6 games can install the repository's root `package.json` through Unity
+Package Manager. Development iOS exports automatically link a matching local
+Swift package into UnityFramework. C# screen handles and scoped reporters supply
+explicit context; Unity provides the rendered frame to the native report editor.
+See [Unity installation and API contract](Documentation/UnityIntegration.md),
+[Boardwalk/Clean sample](Samples~/RinseAndReveal), and
+[verification and gaps](Documentation/UnityValidation.md). This integration is
+available starting with 1.8.0; pin the `1.8.0` tag or a later compatible release.
 
 ## Agent setup handoff
 

@@ -1,0 +1,40 @@
+name: UnityBridgeHost
+options:
+  deploymentTarget:
+    iOS: '15.0'
+settings:
+  base:
+    CODE_SIGNING_ALLOWED: NO
+    GENERATE_INFOPLIST_FILE: YES
+    SWIFT_VERSION: '5.0'
+targets:
+  Unity-iPhone:
+    type: application
+    platform: iOS
+    sources:
+      - Sources/AppDelegate.mm
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.issuecapture.unitybridgehost
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        TARGETED_DEVICE_FAMILY: '1,2'
+    dependencies:
+      - target: UnityFramework
+      - sdk: UIKit.framework
+  UnityFramework:
+    type: framework
+    platform: iOS
+    sources:
+      - Sources/WindowFixture.mm
+      - Sources/UnityAppController.h
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.issuecapture.unitybridgefixture
+        HEADER_SEARCH_PATHS: $(SRCROOT)/Sources
+        DEFINES_MODULE: NO
+schemes:
+  UnityBridgeHost:
+    build:
+      targets:
+        Unity-iPhone: all

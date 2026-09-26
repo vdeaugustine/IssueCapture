@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct CaptureButtonSettings: View {
-    @Bindable var session: CaptureSession
+    @ObservedObject var session: CaptureSession
     let onClose: () -> Void
 
     var body: some View {
@@ -27,7 +27,7 @@ struct CaptureButtonSettings: View {
                 ColorPicker("Button color", selection: colorBinding(\.backgroundColor), supportsOpacity: false)
                 ColorPicker("Icon color", selection: colorBinding(\.foregroundColor), supportsOpacity: false)
                 VStack(alignment: .leading, spacing: 12) {
-                    LabeledContent("Size", value: "\(Int(session.buttonAppearance.resolvedDiameter)) pt")
+                    HStack { Text("Size"); Spacer(); Text("\(Int(session.buttonAppearance.resolvedDiameter)) pt") }
                     Slider(value: Binding(get: { Double(session.buttonAppearance.resolvedDiameter) }, set: {
                         session.buttonAppearance.diameter = CGFloat($0)
                         session.overlay?.updateButtonAppearance()

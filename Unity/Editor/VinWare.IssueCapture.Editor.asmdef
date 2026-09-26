@@ -1,0 +1,6 @@
+{
+  "name": "VinWare.IssueCapture.Editor",
+  "rootNamespace": "VinWare.IssueCapture.Editor",
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}

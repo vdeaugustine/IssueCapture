@@ -8,6 +8,7 @@ final class IssueRecorder: @unchecked Sendable {
     private var byteCount = 0
     private var sequence: UInt64 = 0
     private var suspended = false
+    private var invalidated = false
     private var sceneID = "pending"
 
     func setSceneID(_ value: String) {
@@ -24,10 +25,16 @@ final class IssueRecorder: @unchecked Sendable {
         suspended = value
     }
 
+    func invalidate() {
+        lock.lock()
+        defer { lock.unlock() }
+        invalidated = true
+    }
+
     func record(_ action: IssueAction, screen: IssueScreenContext?, file: String, line: UInt) {
         lock.lock()
         defer { lock.unlock() }
-        guard !suspended else { return }
+        guard !suspended, !invalidated else { return }
         sequence += 1
         var metadata: [String: String] = [:]
         for (key, value) in action.metadata.sorted(by: { $0.key < $1.key }).prefix(16) {

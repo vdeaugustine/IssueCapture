@@ -1,0 +1,23 @@
+{
+  "name": "com.vinware.issuecapture",
+  "version": "1.8.0",
+  "displayName": "IssueCapture for Unity iOS",
+  "description": "Development-only native issue reports with explicit C# context and Unity frame capture.",
+  "unity": "6000.0",
+  "author": {
+    "name": "VinWare LLC",
+    "url": "https://github.com/vdeaugustine/IssueCapture"
+  },
+  "samples": [
+    {
+      "displayName": "Rinse & Reveal integration",
+      "description": "Boardwalk, Clean, retained UI and overlay lifecycle example.",
+      "path": "Samples~/RinseAndReveal"
+    }
+  ],
+  "dependencies": {
+    "com.unity.modules.screencapture": "1.0.0",
+    "com.unity.modules.imageconversion": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0"
+  }
+}

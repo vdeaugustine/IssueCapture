@@ -2,3 +2,20 @@
 .swiftpm/
 .DS_Store
 dist/
+
+# Unity uses tilde-suffixed folders for samples and native templates.
+!Samples~/
+!Samples~/**
+!Unity/Native~/
+!Unity/Native~/**
+
+# Unity generates metadata for documentation and Swift source assets when using
+# this repository as a local UPM package. Only C# package identities are tracked.
+*.meta
+!Unity.meta
+!Unity/Runtime.meta
+!Unity/Editor.meta
+!Unity/Runtime/**/*.meta
+!Unity/Runtime/*.meta
+!Unity/Editor/*.meta
+!package.json.meta
