@@ -6,7 +6,7 @@ struct IssueExportSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var options = ExportImageOptions()
     @State private var showPerImageOptions = false
-    @State private var bulkQuality = ExportImageQuality.original
+    @State private var bulkQuality = ExportImageQuality.defaultQuality
 
     var body: some View {
         ReporterNavigation {
@@ -35,7 +35,7 @@ struct IssueExportSheet: View {
                     }
                     Toggle("Customize individual images", isOn: $showPerImageOptions)
                 } header: { Text("Quick settings") } footer: {
-                    Text("Full detail is the default. JPEG compression reduces fine detail; keep text and subtle rendering bugs at full detail. Pixel dimensions stay unchanged. Smaller PNGs are kept when JPEG would be larger. Originals on this device stay untouched.")
+                    Text("Compact compression is the default. Compact, balanced, and light exports limit the longest edge to 1200, 1600, and 2400 pixels. Choose full detail for fine text or subtle rendering bugs. Originals on this device stay untouched.")
                 }
                 if showPerImageOptions {
                     ForEach(reports) { report in

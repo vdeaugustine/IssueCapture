@@ -3,6 +3,7 @@ import SwiftUI
 struct IssueInbox: View {
     @ObservedObject var session: CaptureSession
     let onClose: () -> Void
+    @AppStorage("IssueCapture.pdfImageQuality") private var pdfImageQuality = ExportImageQuality.defaultQuality.rawValue
     @State private var selected: Set<UUID> = []
     @State private var search = ""
     @State private var todayOnly = false
@@ -193,6 +194,11 @@ struct IssueInbox: View {
         ReporterLabelButton("Copy for Codex", systemImage: "doc.on.doc") { handoff(reports, action: .text) }
         ReporterLabelButton("Share PDF", systemImage: "doc.richtext") { handoff(reports, action: .sharePDF) }
         ReporterLabelButton("Copy PDF", systemImage: "doc.on.clipboard") { handoff(reports, action: .copyPDF) }
+        Picker("PDF image quality", selection: $pdfImageQuality) {
+            ForEach(ExportImageQuality.allCases, id: \.rawValue) { quality in
+                Text(quality.title).tag(quality.rawValue)
+            }
+        }
         ReporterLabelButton("Export ZIP…", systemImage: "archivebox") { exportOptions = ExportRoute(reports: reports) }
     }
 
@@ -208,11 +214,11 @@ struct IssueInbox: View {
                     try await IssueHandoff.copyText(reports)
                     offerDeletion(for: Set(reports.map(\.id)))
                 case .sharePDF:
-                    let url = try await IssueExporter.shared.exportPDF(reports)
+                    let url = try await IssueExporter.shared.exportPDF(reports, quality: ExportImageQuality(rawValue: pdfImageQuality) ?? .defaultQuality)
                     sharedReportIDs = Set(reports.map(\.id))
                     share = ShareRoute(url: url)
                 case .copyPDF:
-                    let url = try await IssueExporter.shared.exportPDF(reports)
+                    let url = try await IssueExporter.shared.exportPDF(reports, quality: ExportImageQuality(rawValue: pdfImageQuality) ?? .defaultQuality)
                     defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
                     try IssueHandoff.copyPDF(url)
                     offerDeletion(for: Set(reports.map(\.id)))

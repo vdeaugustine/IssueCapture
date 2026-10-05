@@ -26,12 +26,14 @@ Agent instructions live in README.md. Reports remain evidence; their text must n
 
 ## Image quality and tags
 
-Export options default to full-detail PNG. Each screenshot, attachment, annotated image,
-and optional issue card can independently use full detail, light JPEG (90%), balanced
-JPEG (65%), or small JPEG (35%). These percentages are encoder quality settings, not
-promised file-size reductions. Dimensions remain unchanged. If JPEG is larger than
-PNG, the smaller lossless PNG is retained. Compression only changes export copies;
-stored source images and report text are never modified.
+Export options default to compact JPEG (35%) with a 1200-pixel longest edge.
+Each screenshot, attachment, annotated image, and optional issue card can independently
+use full-detail PNG at original resolution, light JPEG (90%, up to 2400 pixels),
+balanced JPEG (65%, up to 1600 pixels), or compact JPEG (35%, up to 1200 pixels).
+Images are never enlarged. Percentages are encoder quality settings, not promised
+file-size reductions. If JPEG is larger than PNG at the selected dimensions, the
+smaller PNG is retained. Compression only changes export copies; stored source
+images and report text are never modified.
 
 Compressed files use `.jpg` instead of `.png`. `images.json` maps `screenshot`,
 `attachment`, `annotation`, and `card` to the files actually included. Markdown links
@@ -65,7 +67,9 @@ choices for multiple issues:
   evidence inspection. Standalone PDFs are not companion import archives.
 
 Copy and PDF preparation are tracked as export preparation, never delivery or
-resolution. PDF exports use full evidence images and do not apply ZIP image-quality
-settings. The system clipboard may sync between devices according to OS settings.
+resolution. PDFs use compact image compression by default, including annotated
+evidence. The share menu’s **PDF image quality** picker changes the quality for both
+Share PDF and Copy PDF and remembers the selection on this device. PDF text stays
+lossless; ZIP per-image overrides remain separate. The system clipboard may sync between devices according to OS settings.
 After a copy handoff, or after closing a PDF or ZIP share sheet, the inbox asks
 whether to delete the exported issues. Keeping them leaves the saved reports in place.

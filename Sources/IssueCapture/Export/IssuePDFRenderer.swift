@@ -1,4 +1,5 @@
 import CoreText
+import ImageIO
 import UIKit
 
 @MainActor
@@ -12,10 +13,27 @@ enum IssuePDFRenderer {
     private static let page = CGRect(x: 0, y: 0, width: 612, height: 792)
     private static let content = CGRect(x: 36, y: 48, width: 540, height: 696)
 
-    static func write(_ evidence: [Evidence], to url: URL) throws {
+    static func write(_ evidence: [Evidence], to url: URL, quality: ExportImageQuality) throws {
         let renderer = UIGraphicsPDFRenderer(bounds: page)
         // Encode before rendering so serialization failures never produce partial handoffs.
         let text = try evidence.map { try IssueHandoff.reportText($0.report) }
+        let images = try evidence.map { item -> [(String, CGImage)] in
+            var pages: [(String, CGImage)] = []
+            if let data = item.screenshot {
+                pages.append(("\(item.report.displayID) · Captured screenshot", try preparedImage(data, quality: quality)))
+            }
+            if let data = item.attachment {
+                pages.append(("\(item.report.displayID) · Attached image", try preparedImage(data, quality: quality)))
+            }
+            if !item.report.annotations.isEmpty,
+               let data = item.screenshot ?? item.attachment, let image = UIImage(data: data) {
+                let resized = ExportImageEncoding.resized(image, quality: quality)
+                let annotated = AnnotationDrawing.render(resized, annotations: item.report.annotations)
+                guard let bytes = annotated.pngData() else { throw CocoaError(.fileWriteUnknown) }
+                pages.append(("\(item.report.displayID) · Annotated evidence", try preparedImage(bytes, quality: quality)))
+            }
+            return pages
+        }
         try renderer.writePDF(to: url) { context in
             let introduction = """
                 IssueCapture issues
@@ -27,13 +45,8 @@ enum IssuePDFRenderer {
             drawText(introduction, context: context)
             for (index, item) in evidence.enumerated() {
                 drawText(text[index], context: context)
-                drawImage(item.screenshot, title: "\(item.report.displayID) · Original screenshot", context: context)
-                drawImage(item.attachment, title: "\(item.report.displayID) · Attached image", context: context)
-                if !item.report.annotations.isEmpty,
-                   let data = item.screenshot ?? item.attachment,
-                   let image = UIImage(data: data) {
-                    drawImage(AnnotationDrawing.render(image, annotations: item.report.annotations),
-                              title: "\(item.report.displayID) · Annotated evidence", context: context)
+                for (title, image) in images[index] {
+                    drawImage(image, title: title, context: context)
                 }
             }
         }
@@ -67,19 +80,30 @@ enum IssuePDFRenderer {
         }
     }
 
-    private static func drawImage(_ data: Data?, title: String, context: UIGraphicsPDFRendererContext) {
-        guard let data, let image = UIImage(data: data) else { return }
-        drawImage(image, title: title, context: context)
+    private static func preparedImage(_ data: Data, quality: ExportImageQuality) throws -> CGImage {
+        let encoded = try ExportImageEncoding.encode(data, quality: quality)
+        guard let source = CGImageSourceCreateWithData(encoded.data as CFData, nil),
+              let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        return image
     }
 
-    private static func drawImage(_ image: UIImage, title: String, context: UIGraphicsPDFRendererContext) {
+    private static func drawImage(_ image: CGImage, title: String, context: UIGraphicsPDFRendererContext) {
         context.beginPage()
         (title as NSString).draw(in: CGRect(x: 36, y: 24, width: 540, height: 22),
                                 withAttributes: [.font: UIFont.boldSystemFont(ofSize: 12),
                                                  .foregroundColor: UIColor.black])
-        let scale = min(content.width / image.size.width, content.height / image.size.height)
-        let size = CGSize(width: image.size.width * scale, height: image.size.height * scale)
-        image.draw(in: CGRect(x: content.midX - size.width / 2, y: content.midY - size.height / 2,
-                              width: size.width, height: size.height))
+        let scale = min(content.width / CGFloat(image.width), content.height / CGFloat(image.height))
+        let size = CGSize(width: CGFloat(image.width) * scale, height: CGFloat(image.height) * scale)
+        let rectangle = CGRect(x: content.midX - size.width / 2, y: content.midY - size.height / 2,
+                               width: size.width, height: size.height)
+        let graphics = context.cgContext
+        graphics.saveGState()
+        graphics.translateBy(x: 0, y: page.height)
+        graphics.scaleBy(x: 1, y: -1)
+        graphics.draw(image, in: CGRect(x: rectangle.minX, y: page.height - rectangle.maxY,
+                                       width: rectangle.width, height: rectangle.height))
+        graphics.restoreGState()
     }
 }
