@@ -30,3 +30,27 @@ Xcode records the resolved version and revision in the consumer's `Package.resol
 ## Release checks
 
 The tag workflow checks the manifest and builds the package for the iOS simulator. Physical-device behavior and consuming-app integration remain host-repository responsibilities.
+
+## When Xcode keeps an older version
+
+Publishing a tag makes a version available; it does not update consumers' existing
+`Package.resolved` files. **Resolve Package Versions** and ordinary builds may retain
+an already resolved version. Use **File → Packages → Update to Latest Package
+Versions** to request compatible updates, then commit the consumer's updated
+`Package.resolved` file.
+
+In the consumer project's **Package Dependencies** settings, choose **Up to Next
+Major Version** with the desired minimum version (for example, `1.8.1`). An **Exact
+Version** requirement of `1.8.0` excludes `1.8.1` even when asking Xcode to update.
+A branch or revision requirement follows that reference instead of release tags.
+
+To require an update from the command line, raise only IssueCapture's minimum
+version in the consumer project and run:
+
+```sh
+xcodebuild -resolvePackageDependencies -project YourApp.xcodeproj
+```
+
+Verify that IssueCapture's resolved version and revision match the published tag.
+Keep unrelated dependency pins intact. Package cache resets are unnecessary when
+the problem is an exact requirement or an older compatible lockfile.
