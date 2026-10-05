@@ -8,6 +8,7 @@ struct IssueInbox: View {
     @State private var search = ""
     @State private var todayOnly = false
     @State private var newOnly = false
+    @State private var issueCaptureOnly = false
     @State private var tagFilter = ""
     @State private var exportOptions: ExportRoute?
     @State private var pendingExport: (reports: [IssueReport], options: ExportImageOptions)?
@@ -25,6 +26,7 @@ struct IssueInbox: View {
         session.reports.filter {
             (!todayOnly || Calendar.current.isDateInToday($0.capturedAt)) &&
             (!newOnly || $0.exportPreparedAt.isEmpty) &&
+            (!issueCaptureOnly || $0.effectiveTarget == .issueCapture) &&
             (tagFilter.isEmpty || ($0.tags ?? []).contains(tagFilter)) &&
             (search.isEmpty || $0.description.localizedCaseInsensitiveContains(search) ||
                 $0.displayID.localizedCaseInsensitiveContains(search) ||
@@ -57,7 +59,13 @@ struct IssueInbox: View {
                         systemImage: session.reports.isEmpty ? "viewfinder" : "magnifyingglass",
                         description: Text(session.reports.isEmpty ? "Return to your app and tap the floating capture button." : "Try another search or clear your filters."))
                     if filtersActive || !search.isEmpty {
-                        Button("Clear search and filters") { search = ""; todayOnly = false; newOnly = false; tagFilter = "" }
+                        Button("Clear search and filters") {
+                            search = ""
+                            todayOnly = false
+                            newOnly = false
+                            issueCaptureOnly = false
+                            tagFilter = ""
+                        }
                     }
                 }
                 ForEach(filtered) { report in
@@ -232,6 +240,7 @@ struct IssueInbox: View {
         Menu {
             Toggle("Today only", isOn: $todayOnly)
             Toggle("Not previously exported", isOn: $newOnly)
+            Toggle("IssueCapture reports only", isOn: $issueCaptureOnly)
             Picker("Tag", selection: $tagFilter) {
                 Text("All tags").tag("")
                 ForEach(Array(Set(session.reports.flatMap { $0.tags ?? [] })).sorted(), id: \.self) { tag in
@@ -251,7 +260,7 @@ struct IssueInbox: View {
         }
     }
 
-    private var filtersActive: Bool { todayOnly || newOnly || !tagFilter.isEmpty }
+    private var filtersActive: Bool { todayOnly || newOnly || issueCaptureOnly || !tagFilter.isEmpty }
 
     private func toggle(_ id: UUID) {
         if selected.contains(id) { selected.remove(id) } else { selected.insert(id) }

@@ -103,7 +103,7 @@ Environment flows to descendants. Read the reporter inside the content wrapped b
 - Save locally. Later, select issues in the inbox and export a ZIP through AirDrop or Files.
 - Unzip on your Mac and give the agent `README.md` plus the linked issue folders. Image cards are also included by default.
 
-The inbox filters by date, description/ID, and export history. Prepared exports are tracked; receipt or fixes are not. Original screenshots are immutable. A manually attached image remains a separate asset.
+The inbox filters by date, description/ID, export history, and reports filed about IssueCapture itself. Prepared exports are tracked; receipt or fixes are not. Original screenshots are immutable. A manually attached image remains a separate asset.
 
 For a custom trigger, configure `showsCaptureTab: false` and read `@Environment(\.issueCapture)` in a descendant of the host. Call `capture()`, `openInbox()`, or `openDiagnostics()` from the main actor.
 
