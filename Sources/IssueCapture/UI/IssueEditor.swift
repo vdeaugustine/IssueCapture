@@ -8,6 +8,7 @@ struct IssueEditor: View {
     @State var attachment: UIImage?
     @State private var pickingPhoto = false
     @State private var annotating = false
+    @State private var annotationImage: UIImage?
     @State private var loadingPhoto = false
     @State private var confirmDiscard = false
     @State private var confirmReporterCapture = false
@@ -36,7 +37,10 @@ struct IssueEditor: View {
                                    captureStatus: report.captureStatus,
                                    onAttach: { pickingPhoto = true },
                                    loadingPhoto: loadingPhoto,
-                                   onAnnotate: { annotating = true })
+                                   onAnnotate: { image in
+                                       annotationImage = image
+                                       annotating = true
+                                   })
             IssueTagPicker(tags: $report.tags)
             detailsSection
             contextSection
@@ -54,9 +58,12 @@ struct IssueEditor: View {
         .toolbar { toolbarContent }
         .interactiveDismissDisabled()
         .sheet(isPresented: $annotating) {
-            if let image {
+            if let image = annotationImage ?? image {
                 IssueAnnotationEditor(image: image, annotations: $report.annotations)
             }
+        }
+        .onChange(of: annotating) { isPresented in
+            if !isPresented { annotationImage = nil }
         }
         .confirmationDialog("Discard changes?", isPresented: $confirmDiscard, titleVisibility: .visible) {
             Button("Discard", role: .destructive, action: onFinish)
