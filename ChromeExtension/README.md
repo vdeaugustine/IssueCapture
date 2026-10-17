@@ -75,7 +75,7 @@ The UTF-8 stored ZIP32 archive includes CRC32 checksums. `manifest.json` declare
 - No automatic action breadcrumbs, errors, network requests, application state, source file mapping, PDF export, redaction, report import, or synchronization in this initial release.
 - Storage saves can fail when disk or browser policy blocks persistence. Failed edits stay visible and warn before leaving. Keep exports of important evidence.
 - Build and JavaScript syntax checks passed. The local server started and the empty inbox rendered in the Codex in-app browser; a root-route asset resolution issue found during that review was corrected.
-- No tests were run. Toolbar capture, shortcuts, annotation interactions, clipboard, and downloaded report archives still require an end-to-end acceptance check in Chrome after loading the unpacked extension. The build produces a loadable manifest and packaged source; this does not establish Chrome Web Store approval.
+- The requested end-to-end acceptance check passed in desktop Chrome 155 on October 17, 2026: toolbar capture, notes and annotations, save, inbox reload, reopen, ZIP download, archive integrity, exact Unicode/multiline report text, and separate original/annotated images. See [observed results and remaining coverage](Acceptance.md). Shortcuts, clipboard, and other paths listed there were not exercised. No automated browser suite or iOS tests were run; this does not establish Chrome Web Store approval.
 
 ## Release identity
 
