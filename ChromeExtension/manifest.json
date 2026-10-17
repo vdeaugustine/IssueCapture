@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "IssueCapture — Web",
+  "version": "0.1.0",
+  "description": "Capture a page, describe an issue, and keep evidence locally until you're ready to export.",
+  "minimum_chrome_version": "109",
+  "permissions": ["activeTab", "scripting", "unlimitedStorage"],
+  "action": { "default_popup": "src/popup/popup.html", "default_title": "IssueCapture" },
+  "background": { "service_worker": "src/background/worker.js", "type": "module" },
+  "commands": {
+    "capture-issue": {
+      "suggested_key": { "default": "Ctrl+Shift+U", "mac": "Command+Shift+U" },
+      "description": "Capture the current page as an issue"
+    }
+  },
+  "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'none'" }
+}

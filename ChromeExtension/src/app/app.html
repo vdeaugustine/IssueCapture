@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>IssueCapture · Inbox</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="editor.css"><link rel="stylesheet" href="responsive.css"></head>
+<body>
+<aside class="sidebar">
+  <a class="brand" href="app.html"><span class="brand-mark">⌗</span><span>IssueCapture<small>FOR THE WEB</small></span></a>
+  <div class="workspace"><span class="workspace-icon">W</span><div>My workspace<small>Saved on this device</small></div></div>
+  <span class="section-label">WORKSPACE</span>
+  <nav aria-label="Issue views">
+    <button class="nav-item active" data-view="all"><span>▤ &nbsp; All issues</span><span id="all-count">0</span></button>
+    <button class="nav-item" data-view="Open"><span>○ &nbsp; Open</span><span id="open-count">0</span></button>
+    <button class="nav-item" data-view="Resolved"><span>✓ &nbsp; Resolved</span><span id="resolved-count">0</span></button>
+    <button class="nav-item" data-view="draft"><span>◧ &nbsp; Drafts</span><span id="draft-count">0</span></button>
+  </nav>
+  <div class="sidebar-note"><span>FROM OBSERVATION<br>TO ACTION.</span><p>Capture the detail now.<br>Fix it with context later.</p></div>
+  <button id="help" class="help-button">ⓘ &nbsp; How capturing works</button>
+  <footer><span class="local-dot"></span> Local storage <span>v0.1</span></footer>
+</aside>
+<main>
+  <header class="topbar"><span>Workspace <span class="divider">/</span> <strong id="breadcrumb">All issues</strong></span><span class="local-label">PRIVATE BY DEFAULT</span></header>
+  <section class="content">
+    <div class="page-heading"><div><div class="eyebrow">YOUR OBSERVATIONS, ORGANIZED</div><h1 id="view-title">All issues<span id="heading-count">0</span></h1><p>Small details. Clear context. Better fixes.</p></div><button id="new-issue" class="primary">＋ &nbsp; New issue</button></div>
+    <div class="stats"><div><span>Total captured</span><strong id="stat-total">00</strong></div><div><span>Still open</span><strong id="stat-open">00</strong></div><div><span>Resolved</span><strong id="stat-resolved">00</strong></div><div><span>Ready for handoff</span><strong id="stat-ready">00</strong></div></div>
+    <div class="list-toolbar"><label class="search"><span>⌕</span><input id="search" type="search" placeholder="Search issues, pages, or tags…" aria-label="Search issues"></label><select id="type-filter" aria-label="Filter report type"><option value="">All types</option><option>Bug</option><option>Improvement</option><option>Question</option></select><button id="select-all" class="quiet">Select visible</button></div>
+    <div class="selection-bar" id="selection-bar" hidden><span id="selection-count"></span><div><button id="copy-selected">Copy for agent</button><button id="export-selected" class="primary">Export ZIP ↗</button></div></div>
+    <div class="list-heading"><span>ISSUE</span><span>STATUS</span><span>CAPTURED</span></div>
+    <div id="issue-list"></div>
+    <div id="empty-state" class="empty-state"><div class="empty-icon">⌗</div><h2>A clearer picture starts here.</h2><p>Capture a page from the Chrome toolbar, or create<br>a new issue and add your own screenshot.</p><button id="empty-new">Create your first issue <span>→</span></button><small>OFFLINE. ON YOUR DEVICE. READY WHEN YOU ARE.</small></div>
+    <footer class="content-footer"><span id="list-total">0 issues</span><span>Capture now. Export when you're ready.</span></footer>
+  </section>
+</main>
+<dialog id="editor"><form id="issue-form">
+  <header class="dialog-header"><div><span class="eyebrow" id="editor-id">NEW ISSUE</span><h2>Make the issue clear.</h2></div><button type="button" id="close-editor" aria-label="Close editor">✕</button></header>
+  <div class="editor-grid"><section class="report-fields">
+    <label>Title<input name="title" placeholder="What needs attention?" required></label>
+    <div class="field-pair"><label>Type<select name="type"><option>Bug</option><option>Improvement</option><option>Question</option></select></label><label>Status<select name="status"><option>Open</option><option>Resolved</option></select></label></div>
+    <label>What happened?<textarea name="description" rows="4" placeholder="Describe what you observed…"></textarea></label>
+    <label>Expected behavior<textarea name="expected" rows="2" placeholder="What should happen instead?"></textarea></label>
+    <label>Steps to reproduce<textarea name="steps" rows="3" placeholder="1. Open the page&#10;2. …"></textarea></label>
+    <label>Tags <span class="muted">/ comma separated</span><input name="tags" placeholder="checkout, layout, mobile"></label>
+  </section><section class="evidence-panel"><div class="evidence-heading"><h3>Evidence</h3><span>ORIGINAL PRESERVED</span></div>
+    <div id="annotation-tools" class="annotation-tools" role="group" aria-label="Screenshot annotation tools"><button type="button" data-tool="arrow" aria-pressed="true">↗ Arrow</button><button type="button" data-tool="rectangle" aria-pressed="false">▢ Box</button><button type="button" data-tool="pen" aria-pressed="false">∿ Pen</button><button type="button" id="undo">↶ Undo</button></div>
+    <div class="canvas-wrap" id="canvas-wrap"><canvas id="evidence" aria-label="Screenshot annotation area. Draw with a pointer; annotations are optional."></canvas></div>
+    <label class="attachment" id="attachment-label">＋ Add a screenshot<input id="attachment" type="file" accept="image/png,image/jpeg,image/webp"></label>
+    <label id="include-label" class="checkbox-label"><input type="checkbox" name="includeScreenshot"> Include screenshot in exports</label>
+    <details open><summary>Captured context</summary><dl id="page-context"></dl></details>
+    <p class="privacy-note">Review screenshots and URLs before exporting. Page URLs may contain private information. No form values, cookies, or browsing history are collected.</p>
+  </section></div>
+  <footer class="dialog-footer"><div><button type="button" id="delete-issue" class="quiet">Delete issue</button><span id="save-state" role="status"></span></div><button type="submit" class="primary">Save issue <span>↵</span></button></footer>
+</form></dialog>
+<dialog id="help-dialog"><div class="help-content"><span class="eyebrow">A SMALL TOOL FOR BETTER HANDOFFS</span><h2>See it. Capture it. Keep it.</h2><p>On an HTTP or HTTPS page, open the IssueCapture Chrome toolbar button and choose <strong>Capture this page</strong>. Or use ⌘⇧U on Mac / Ctrl+Shift+U elsewhere (customize at chrome://extensions/shortcuts).</p><p>Your visible viewport is saved before this editor opens, together with the page title, URL, viewport, scroll position, browser, language, and timezone. Add notes and optional arrows, boxes, or pen marks.</p><p>Select saved issues to download a ZIP with original images, annotations, Markdown and JSON, or copy a text handoff for your coding agent. Export preparation is tracked; delivery and fixes are not inferred.</p><p>Everything stays in this browser profile. There is no account, server, automatic recording, console capture, or network logging. Removing the extension or clearing this site's data removes its reports. Export what you want to keep.</p><p>The standalone web inbox supports text reports and attached screenshots. Automatic page capture requires the extension. Its reports are separate from the iOS package and Mac companion format.</p><button id="close-help" class="primary">Got it</button></div></dialog>
+<div id="toast" role="status" hidden></div>
+<script type="module" src="app.js"></script>
+</body></html>

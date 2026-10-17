@@ -1,0 +1,11 @@
+{
+  "name": "issuecapture-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Independent, offline Chrome extension and web inbox for issue reports.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/serve.mjs"
+  }
+}

@@ -4,6 +4,15 @@ Embed an offline issue reporter in a SwiftUI iPhone app or Unity iOS game. Tap a
 
 Requires iOS 15+ and a Swift 6 toolchain. Package sources compile in Swift 5 language mode. No third-party dependencies, account, or backend.
 
+## Chrome extension and web inbox
+
+[ChromeExtension/](ChromeExtension) is an independent browser tool for capturing
+web issues. Capture a visible page from Chrome, annotate its screenshot, add notes
+and tags, save reports locally, and export selected reports as a ZIP or copied
+agent handoff. Its neutral dark inbox also runs as a standalone web app for manual
+reports. It has its own version and web export schema, with no Swift, iOS, Unity,
+or backend dependency. See [installation and limits](ChromeExtension/README.md).
+
 ## Unity iOS
 
 Unity 6 games can install the repository's root `package.json` through Unity

@@ -1,0 +1,166 @@
+@media(min-width:1500px) {
+  .content {
+    padding-top:65px
+  }
+}
+@media(max-width:950px) {
+  .sidebar {
+    width:190px;
+    padding:25px 14px 0
+  }
+  main {
+    margin-left:190px;
+    width:calc(100% - 190px)
+  }
+  .content {
+    padding:30px 24px
+  }
+  .topbar {
+    padding:0 24px
+  }
+  .stats>div {
+    padding:0 15px
+  }
+  .list-heading {
+    grid-template-columns:1fr 80px 75px
+  }
+  .issue-row {
+    grid-template-columns:20px 1fr 80px 75px;
+    gap:3px
+  }
+  .editor-grid {
+    grid-template-columns:1fr
+  }
+  .report-fields {
+    border-right:0;
+    border-bottom:1px solid #333
+  }
+  .canvas-wrap {
+    max-height:none
+  }
+}
+@media(max-width:650px) {
+  .sidebar {
+    position:static;
+    width:100%;
+    padding:20px;
+    display:block;
+    border-right:0;
+    border-bottom:1px solid #333
+  }
+  .sidebar .workspace,.sidebar .section-label,.sidebar-note,.sidebar footer,.help-button {
+    display:none
+  }
+  .brand {
+    font-size:16px
+  }
+  .brand small {
+    display:none
+  }
+  nav {
+    display:flex;
+    margin-top:20px;
+    gap:4px
+  }
+  .nav-item {
+    flex:1;
+    font-size:10px;
+    padding:10px 5px
+  }
+  .nav-item>span:last-child {
+    display:none
+  }
+  body {
+    display:block
+  }
+  main {
+    margin:0;
+    width:100%
+  }
+  .topbar {
+    height:50px
+  }
+  .local-label {
+    display:none
+  }
+  .content {
+    padding:28px 20px
+  }
+  .page-heading {
+    align-items:flex-start
+  }
+  .eyebrow {
+    font-size:8px
+  }
+  .page-heading h1 {
+    font-size:27px
+  }
+  .page-heading p {
+    font-size:11px
+  }
+  .stats {
+    padding:18px 0
+  }
+  .stats>div {
+    padding:0 10px
+  }
+  .stats span {
+    font-size:9px
+  }
+  .stats strong {
+    font-size:22px
+  }
+  .list-toolbar {
+    flex-wrap:wrap
+  }
+  .search {
+    flex-basis:100%;
+    max-width:none
+  }
+  .list-toolbar select {
+    margin-left:0
+  }
+  .list-heading {
+    grid-template-columns:1fr 70px
+  }
+  .list-heading>span:last-child,.issue-date {
+    display:none
+  }
+  .issue-row {
+    grid-template-columns:20px 1fr 70px
+  }
+  .content-footer>span:last-child {
+    display:none
+  }
+  .selection-bar {
+    gap:8px;
+    font-size:10px
+  }
+  .selection-bar button {
+    font-size:9px;
+    padding:8px
+  }
+  .dialog-header,.report-fields,.evidence-panel {
+    padding:20px
+  }
+  .dialog-footer {
+    padding:15px
+  }
+  .dialog-footer>div {
+    gap:4px
+  }
+  #save-state {
+    max-width:110px
+  }
+  .empty-state {
+    padding:50px 0
+  }
+  .empty-state small {
+    font-size:7px
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  * {
+    transition:none!important
+  }
+}
