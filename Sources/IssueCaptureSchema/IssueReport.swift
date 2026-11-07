@@ -57,6 +57,7 @@ public enum IssueModel: String, Codable, CaseIterable, Sendable {
     case sonnet55 = "sonnet-5.5"
     case gpt61Terra = "gpt-6.1-terra"
     case haiku = "haiku"
+    case gpt6Luna = "gpt-6-luna"
 
     /// Human-readable label.
     public var title: String {
@@ -68,6 +69,7 @@ public enum IssueModel: String, Codable, CaseIterable, Sendable {
         case .sonnet55: return "Sonnet 5.5"
         case .gpt61Terra: return "GPT-6.1 Terra"
         case .haiku: return "Haiku"
+        case .gpt6Luna: return "GPT-6 Luna"
         }
     }
 }

@@ -16,7 +16,8 @@ importance and difficulty, and delegate each group to that model.
 | Upper-mid | **Sonnet 5.5** (sits between Opus and Sol) | Nearly Opus-level design/creativity, very fast and efficient, good medium coder. Medium-effort front-end. |
 | Upper-mid | **GPT-6.1 Sol** | Near-Astra intelligence for backend and logical work; backend checking and verification. Weaker taste than Opus. |
 | Mid | **GPT-6.1 Terra** | Computer use and lightweight work that is not very logical: a medium-level developer. |
-| Light | **Haiku** | Trivial, mechanical edits. |
+| Light | **Haiku** | Trivial edits and text improvements. Decent at small taste decisions, better than Luna. |
+| Lightest | **GPT-6 Luna** | Trivial mechanical edits, a tier below Haiku. Weaker taste than Haiku, but better at holding up over long-horizon repetitive work. |
 
 ## Routing rules
 
@@ -27,5 +28,5 @@ importance and difficulty, and delegate each group to that model.
 5. Computer use, or light and not very logical → **GPT-6.1 Terra**.
 6. Backend verification of Opus/Sonnet output → **Sol**.
 
-Difficulty 1 pairs with Haiku/Terra, 2 with Sonnet/Sol/Terra, 3 with Opus/Sol,
+Difficulty 1 pairs with Haiku/Luna/Terra, 2 with Sonnet/Sol/Terra, 3 with Opus/Sol,
 4 with Fable 5.1/Astra/Opus. Importance sets ordering, not model choice.

@@ -78,6 +78,6 @@ whether to delete the exported issues. Keeping them leaves the saved reports in 
 
 Reports may carry optional `difficulty` (1–4), `importance` (1–4) and
 `recommendedModel` (`fable-5.1`, `gpt-6-astra`, `opus-5.5`, `gpt-6.1-sol`,
-`sonnet-5.5`, `gpt-6.1-terra`, `haiku`). Absent fields mean not set. They appear in
+`sonnet-5.5`, `gpt-6.1-terra`, `haiku`, `gpt-6-luna`). Absent fields mean not set. They appear in
 each issue's text and JSON, and PDF/text handoffs open with a condensed routing
 guide. The full standard is `Documentation/ModelRouting.md`.

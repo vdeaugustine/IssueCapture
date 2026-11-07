@@ -16,6 +16,8 @@ enum IssueMarkdown {
     - Sonnet 5.5: near-Opus design/creativity, fast; medium-effort front-end and a good medium coder.
     - GPT-6.1 Sol: near-Astra logic; backend and medium-to-hard logical work, verification.
     - GPT-6.1 Terra: computer use and lightweight, low-logic work (medium-level developer).
+    - Haiku: trivial edits and text improvements; decent taste for its size.
+    - GPT-6 Luna (lightest tier, below Haiku): trivial mechanical edits; weaker taste than Haiku but steadier over long-horizon repetitive work.
     Front-end + medium effort -> Sonnet. Backend + medium -> Sol. Front-end + epic/best taste -> Opus. Epic logic -> Fable 5.1 or Astra.
     """
 
