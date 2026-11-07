@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 /// Standalone handoffs retain the full serialized report alongside readable evidence.
 enum IssueHandoff {
     static func text(_ reports: [IssueReport]) throws -> String {
-        try ([IssueMarkdown.agentPrompt] + reports.map { report in
+        try ([IssueMarkdown.agentPrompt, IssueMarkdown.modelRouting] + reports.map { report in
             try reportText(report)
                 + "\nImages are included in PDF/ZIP exports; clipboard text contains metadata only.\n"
         }).joined(separator: "\n\n---\n\n")

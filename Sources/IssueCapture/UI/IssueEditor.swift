@@ -99,6 +99,18 @@ struct IssueEditor: View {
                     Text(target.title).tag(target)
                 }
             }
+            Picker("Difficulty", selection: $report.difficulty) {
+                Text("Not set").tag(IssueDifficulty?.none)
+                ForEach(IssueDifficulty.allCases, id: \.self) { Text($0.title).tag(IssueDifficulty?.some($0)) }
+            }
+            Picker("Importance", selection: $report.importance) {
+                Text("Not set").tag(IssueImportance?.none)
+                ForEach(IssueImportance.allCases, id: \.self) { Text($0.title).tag(IssueImportance?.some($0)) }
+            }
+            Picker("Suggested model", selection: $report.recommendedModel) {
+                Text("No preference").tag(IssueModel?.none)
+                ForEach(IssueModel.allCases, id: \.self) { Text($0.title).tag(IssueModel?.some($0)) }
+            }
         }
     }
 
@@ -204,6 +216,8 @@ struct IssueEditor: View {
         guard let original = session.draft else { return true }
         return report.description != original.description || report.expectedBehavior != original.expectedBehavior
             || report.reproductionNotes != original.reproductionNotes
+            || report.difficulty != original.difficulty || report.importance != original.importance
+            || report.recommendedModel != original.recommendedModel
             || report.effectiveKind != original.effectiveKind || report.effectiveTarget != original.effectiveTarget
             || report.hasScreenshot != original.hasScreenshot
             || report.tags != original.tags

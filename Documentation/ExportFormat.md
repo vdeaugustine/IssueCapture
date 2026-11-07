@@ -73,3 +73,11 @@ Share PDF and Copy PDF and remembers the selection on this device. PDF text stay
 lossless; ZIP per-image overrides remain separate. The system clipboard may sync between devices according to OS settings.
 After a copy handoff, or after closing a PDF or ZIP share sheet, the inbox asks
 whether to delete the exported issues. Keeping them leaves the saved reports in place.
+
+## Triage metadata and model routing
+
+Reports may carry optional `difficulty` (1–4), `importance` (1–4) and
+`recommendedModel` (`fable-5.1`, `gpt-6-astra`, `opus-5.5`, `gpt-6.1-sol`,
+`sonnet-5.5`, `gpt-6.1-terra`, `haiku`). Absent fields mean not set. They appear in
+each issue's text and JSON, and PDF/text handoffs open with a condensed routing
+guide. The full standard is `Documentation/ModelRouting.md`.

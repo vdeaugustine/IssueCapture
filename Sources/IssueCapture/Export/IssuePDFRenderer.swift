@@ -41,6 +41,8 @@ enum IssuePDFRenderer {
                 This PDF contains \(evidence.count) saved issue \(evidence.count == 1 ? "report" : "reports") and their available image evidence. Please investigate each issue in the host repository, implement the appropriate fixes or requested features, and report the outcome for each issue ID.
 
                 \(IssueMarkdown.agentPrompt)
+
+                \(IssueMarkdown.modelRouting)
                 """
             drawText(introduction, context: context)
             for (index, item) in evidence.enumerated() {

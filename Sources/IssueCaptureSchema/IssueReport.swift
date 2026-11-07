@@ -18,6 +18,60 @@ public enum IssueTarget: String, Codable, CaseIterable, Sendable {
     public var title: String { self == .hostApp ? "Host app" : "IssueCapture" }
 }
 
+/// Reporter-estimated effort, 1 (trivial) ... 4 (epic). Independent of importance.
+public enum IssueDifficulty: Int, Codable, CaseIterable, Sendable {
+    case trivial = 1, easy, hard, epic
+
+    /// Human-readable label.
+    public var title: String {
+        switch self {
+        case .trivial: return "1 · Trivial"
+        case .easy: return "2 · Moderate"
+        case .hard: return "3 · Hard"
+        case .epic: return "4 · Epic"
+        }
+    }
+}
+
+/// Reporter-estimated importance, 1 (nice to have) ... 4 (critical). Independent of difficulty.
+public enum IssueImportance: Int, Codable, CaseIterable, Sendable {
+    case low = 1, normal, high, critical
+
+    /// Human-readable label.
+    public var title: String {
+        switch self {
+        case .low: return "1 · Nice to have"
+        case .normal: return "2 · Normal"
+        case .high: return "3 · High"
+        case .critical: return "4 · Critical"
+        }
+    }
+}
+
+/// Coding model the reporter recommends for the issue. See `Documentation/ModelRouting.md`.
+public enum IssueModel: String, Codable, CaseIterable, Sendable {
+    case fable51 = "fable-5.1"
+    case gpt6Astra = "gpt-6-astra"
+    case opus55 = "opus-5.5"
+    case gpt61Sol = "gpt-6.1-sol"
+    case sonnet55 = "sonnet-5.5"
+    case gpt61Terra = "gpt-6.1-terra"
+    case haiku = "haiku"
+
+    /// Human-readable label.
+    public var title: String {
+        switch self {
+        case .fable51: return "Fable 5.1"
+        case .gpt6Astra: return "GPT-6 Astra"
+        case .opus55: return "Opus 5.5"
+        case .gpt61Sol: return "GPT-6.1 Sol"
+        case .sonnet55: return "Sonnet 5.5"
+        case .gpt61Terra: return "GPT-6.1 Terra"
+        case .haiku: return "Haiku"
+        }
+    }
+}
+
 /// Identity of one mounted, explicitly registered screen.
 public struct IssueScreenContext: Codable, Identifiable, Sendable, Equatable {
     /// Mounted instance identity.
@@ -129,6 +183,12 @@ public struct IssueReport: Codable, Identifiable, Sendable {
     public var kind: IssueKind? = nil
     /// Nil decodes legacy reports as host-app reports.
     public var target: IssueTarget? = nil
+    /// Optional effort estimate; nil for legacy or unrated reports.
+    public var difficulty: IssueDifficulty? = nil
+    /// Optional importance estimate; nil for legacy or unrated reports.
+    public var importance: IssueImportance? = nil
+    /// Optional recommended coding model; nil means no preference.
+    public var recommendedModel: IssueModel? = nil
     /// Work type, with legacy default.
     public var effectiveKind: IssueKind { kind ?? .bug }
     /// Target product, with legacy default.
@@ -144,7 +204,9 @@ public struct IssueReport: Codable, Identifiable, Sendable {
                 environment: [String: String], events: [IssueEvent], captureStatus: String,
                 annotations: [IssueAnnotation] = [], exportPreparedAt: [Date] = [],
                 hasScreenshot: Bool, hasAttachment: Bool = false, tags: [String]? = nil,
-                kind: IssueKind? = nil, target: IssueTarget? = nil) {
+                kind: IssueKind? = nil, target: IssueTarget? = nil,
+                difficulty: IssueDifficulty? = nil, importance: IssueImportance? = nil,
+                recommendedModel: IssueModel? = nil) {
         self.schemaVersion = schemaVersion
         self.id = id
         self.projectID = projectID
@@ -165,5 +227,8 @@ public struct IssueReport: Codable, Identifiable, Sendable {
         self.tags = tags
         self.kind = kind
         self.target = target
+        self.difficulty = difficulty
+        self.importance = importance
+        self.recommendedModel = recommendedModel
     }
 }
