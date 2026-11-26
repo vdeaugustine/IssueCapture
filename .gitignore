@@ -1,6 +1,8 @@
 .build/
 .swiftpm/
 .DS_Store
+*.xcuserstate
+xcuserdata/
 dist/
 
 # Unity uses tilde-suffixed folders for samples and native templates.
