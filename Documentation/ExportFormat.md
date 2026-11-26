@@ -77,7 +77,10 @@ whether to delete the exported issues. Keeping them leaves the saved reports in 
 ## Triage metadata and model routing
 
 Reports may carry optional `difficulty` (1–4), `importance` (1–4) and
-`recommendedModel` (`fable-5.1`, `gpt-6-astra`, `opus-5.5`, `gpt-6.1-sol`,
+`recommendedModel` (`fable-5.1`, `gpt-6.2-astra`, `opus-5.5`, `gpt-6.2-sol`,
 `sonnet-5.5`, `gpt-6.1-terra`, `haiku`, `gpt-6-luna`). Absent fields mean not set. They appear in
 each issue's text and JSON, and PDF/text handoffs open with a condensed routing
 guide. The full standard is `Documentation/ModelRouting.md`.
+
+IssueCapture reads `gpt-6-astra` and `gpt-6.1-sol` from earlier reports as aliases
+for the GPT-6.2 models. Subsequent saves and exports use the current identifiers.

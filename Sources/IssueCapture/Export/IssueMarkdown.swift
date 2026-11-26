@@ -11,10 +11,10 @@ enum IssueMarkdown {
     /// Condensed model-routing guide; the full standard is `Documentation/ModelRouting.md`.
     static let modelRouting = """
     MODEL ROUTING (issues carry Difficulty 1-4, Importance 1-4, Suggested model). Group issues by suggested model and delegate accordingly.
-    - Top tier, hardest logical/reasoning work (not design/taste): Fable 5.1, GPT-6 Astra.
+    - Top tier, hardest logical/reasoning work (not design/taste): Fable 5.1, \(IssueModel.gpt6Astra.title).
     - Opus 5.5: top tier for creative, 3D, design, taste, storytelling; also strong at logic, but prefer Sol for backend checking.
     - Sonnet 5.5: near-Opus design/creativity, fast; medium-effort front-end and a good medium coder.
-    - GPT-6.1 Sol: near-Astra logic; backend and medium-to-hard logical work, verification.
+    - \(IssueModel.gpt61Sol.title): near-Astra logic; backend and medium-to-hard logical work, verification.
     - GPT-6.1 Terra: computer use and lightweight, low-logic work (medium-level developer).
     - Haiku: trivial edits and text improvements; decent taste for its size.
     - GPT-6 Luna (lightest tier, below Haiku): trivial mechanical edits; weaker taste than Haiku but steadier over long-horizon repetitive work.

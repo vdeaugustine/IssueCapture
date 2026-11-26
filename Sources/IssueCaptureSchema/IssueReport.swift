@@ -51,21 +51,34 @@ public enum IssueImportance: Int, Codable, CaseIterable, Sendable {
 /// Coding model the reporter recommends for the issue. See `Documentation/ModelRouting.md`.
 public enum IssueModel: String, Codable, CaseIterable, Sendable {
     case fable51 = "fable-5.1"
-    case gpt6Astra = "gpt-6-astra"
+    /// GPT-6.2 Astra. The Swift case name is retained for source compatibility.
+    case gpt6Astra = "gpt-6.2-astra"
     case opus55 = "opus-5.5"
-    case gpt61Sol = "gpt-6.1-sol"
+    /// GPT-6.2 Sol. The Swift case name is retained for source compatibility.
+    case gpt61Sol = "gpt-6.2-sol"
     case sonnet55 = "sonnet-5.5"
     case gpt61Terra = "gpt-6.1-terra"
     case haiku = "haiku"
     case gpt6Luna = "gpt-6-luna"
 
+    /// Resolves current model identifiers and aliases from earlier reports.
+    public init?(rawValue: String) {
+        switch rawValue {
+        case "gpt-6-astra": self = .gpt6Astra
+        case "gpt-6.1-sol": self = .gpt61Sol
+        default:
+            guard let model = Self.allCases.first(where: { $0.rawValue == rawValue }) else { return nil }
+            self = model
+        }
+    }
+
     /// Human-readable label.
     public var title: String {
         switch self {
         case .fable51: return "Fable 5.1"
-        case .gpt6Astra: return "GPT-6 Astra"
+        case .gpt6Astra: return "GPT-6.2 Astra"
         case .opus55: return "Opus 5.5"
-        case .gpt61Sol: return "GPT-6.1 Sol"
+        case .gpt61Sol: return "GPT-6.2 Sol"
         case .sonnet55: return "Sonnet 5.5"
         case .gpt61Terra: return "GPT-6.1 Terra"
         case .haiku: return "Haiku"
